@@ -918,7 +918,7 @@
     }
     #calendarOriginalView .calendarDay{
       display:block !important;
-      min-height:68px !important;
+      min-height:86px !important;
       padding:4px 3px !important;
       border-radius:10px !important;
       overflow:hidden !important;
@@ -966,9 +966,9 @@
       font-size:8px !important;
       line-height:1.15 !important;
       text-align:center !important;
-      white-space:nowrap !important;
-      overflow:hidden !important;
-      text-overflow:ellipsis !important;
+      white-space:normal !important;
+      overflow:visible !important;
+      text-overflow:clip !important;
     }
     #calendarOriginalView .calendarSummary{
       display:block !important;
@@ -978,9 +978,9 @@
       font-size:8px !important;
       line-height:1.15 !important;
       text-align:center !important;
-      white-space:nowrap !important;
-      overflow:hidden !important;
-      text-overflow:ellipsis !important;
+      white-space:normal !important;
+      overflow:visible !important;
+      text-overflow:clip !important;
     }
     #calendarOriginalView .dayDetail{
       margin-top:10px !important;
@@ -1002,13 +1002,24 @@
         padding:8px !important;
       }
       #calendarOriginalView .calendarDay{
-        min-height:62px !important;
+        min-height:82px !important;
       }
       #calendarOriginalView .monthNavBtn{
         min-width:44px !important;
         padding:7px 8px !important;
         font-size:11px !important;
       }
+    }
+    #calendarOriginalView .dayDetail .slotAvailable{
+      cursor:pointer !important;
+      border:1px solid rgba(22,163,74,0.18) !important;
+    }
+    #calendarOriginalView .dayDetail .slotAvailable:active{
+      transform:scale(0.98);
+    }
+    #calendarOriginalView .dayDetail .slotAvailable.selected{
+      outline:3px solid rgba(22,163,74,0.18);
+      background:#bbf7d0 !important;
     }
   </style>
 </head>
@@ -1732,11 +1743,22 @@
         slot.getAttribute("data-date") || "";
       var periodText =
         slot.getAttribute("data-period") || "";
+      var startTime =
+        slot.getAttribute("data-start-time") || "";
+      var endTime =
+        slot.getAttribute("data-end-time") || "";
 
       document.getElementById("b_date").value = dateText;
       document.getElementById("b_period").value =
         periodKeyFromText(periodText);
       syncDefaultTime();
+      if(startTime){
+        document.getElementById("b_startTime").value = startTime;
+      }
+      if(endTime){
+        syncEndTimeOptions(endTime);
+        document.getElementById("b_endTime").value = endTime;
+      }
       selectedSlotKey =
         document.getElementById("b_date").value + "|" +
         document.getElementById("b_period").value + "|" +
@@ -1754,7 +1776,12 @@
         "\u5df2\u9078\u64c7\uff1a" +
         dateText +
         " " +
-        periodText,
+        periodText +
+        (
+          startTime && endTime ?
+          " " + startTime + "-" + endTime :
+          ""
+        ),
         false
       );
     }
@@ -1845,10 +1872,14 @@
       (slots || []).forEach(function(slot){
         if(slot.available){
           html +=
-            '<div role="button" tabindex="0" class="slot slotAvailable bookableSlot" data-date="' +
+            '<div role="button" tabindex="0" class="slot slotAvailable bookableSlot" onclick="selectOriginalBookableSlot(this);return false;" data-date="' +
             dateText +
             '" data-period="' +
             slot.period +
+            '" data-start-time="' +
+            slot.startTime +
+            '" data-end-time="' +
+            slot.endTime +
             '" data-label="' +
             dateText +
             " " +
