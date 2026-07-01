@@ -1015,6 +1015,10 @@
       }
     }
     #calendarOriginalView .dayDetail .slotAvailable{
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) 82px !important;
+      align-items:center !important;
+      gap:10px !important;
       cursor:pointer !important;
       min-height:58px !important;
       padding:12px 14px !important;
@@ -1034,11 +1038,13 @@
       box-shadow:0 12px 26px rgba(22,163,74,0.20),inset 0 1px 0 rgba(255,255,255,0.78) !important;
     }
     #calendarOriginalView .dayDetail .slotAvailable .slotName{
+      display:block !important;
       font-size:15px !important;
       font-weight:950 !important;
       color:#166534 !important;
     }
     #calendarOriginalView .dayDetail .slotAvailable .slotTime{
+      display:block !important;
       margin-top:4px !important;
       font-size:13px !important;
       font-weight:900 !important;
@@ -1046,6 +1052,11 @@
       opacity:1 !important;
     }
     #calendarOriginalView .dayDetail .slotAvailable .slotAction{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      width:82px !important;
+      min-height:32px !important;
       padding:7px 10px !important;
       border-radius:999px !important;
       background:#16a34a !important;
@@ -1054,6 +1065,10 @@
       box-shadow:0 7px 14px rgba(22,163,74,0.20) !important;
     }
     #calendarOriginalView .dayDetail .slotFull{
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) 82px !important;
+      align-items:center !important;
+      gap:10px !important;
       min-height:54px !important;
       padding:12px 14px !important;
       border-radius:16px !important;
@@ -1063,17 +1078,25 @@
       box-shadow:0 8px 18px rgba(220,38,38,0.10),inset 0 1px 0 rgba(255,255,255,0.72) !important;
     }
     #calendarOriginalView .dayDetail .slotFull .slotName{
+      display:block !important;
       color:#991b1b !important;
       font-size:15px !important;
       font-weight:950 !important;
     }
     #calendarOriginalView .dayDetail .slotFull .slotTime{
+      display:block !important;
+      margin-top:4px !important;
       color:#b91c1c !important;
       opacity:1 !important;
       font-size:13px !important;
       font-weight:900 !important;
     }
     #calendarOriginalView .dayDetail .slotFull .slotAction{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      width:82px !important;
+      min-height:32px !important;
       padding:7px 10px !important;
       border-radius:999px !important;
       background:#dc2626 !important;
