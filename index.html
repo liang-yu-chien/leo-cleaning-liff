@@ -1342,6 +1342,15 @@
       return "\u5176\u4ed6";
     }
 
+    function getRoomTypeText(roomType){
+      if(roomType == "studio"){ return "\u5957\u623f"; }
+      if(roomType == "1 room"){ return "1\u623f"; }
+      if(roomType == "2 rooms"){ return "2\u623f"; }
+      if(roomType == "3 rooms"){ return "3\u623f"; }
+      if(roomType == "4+ rooms"){ return "4\u623f\u4ee5\u4e0a"; }
+      return "\u5176\u4ed6 / \u5099\u8a3b\u586b\u5beb";
+    }
+
     function getPetText(pet){
       if(pet == "no pet"){ return "\u7121\u5bf5\u7269"; }
       if(pet == "cat"){ return "\u6709\u8c93"; }
@@ -1362,7 +1371,7 @@
         startTime:document.getElementById("b_startTime").value,
         endTime:document.getElementById("b_endTime").value,
         service:getServiceText(service),
-        roomType:document.getElementById("b_roomType").value,
+        roomType:getRoomTypeText(document.getElementById("b_roomType").value),
         pet:getPetText(document.getElementById("b_pet").value),
         note:document.getElementById("b_note").value.trim()
       };
