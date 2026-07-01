@@ -49,6 +49,7 @@
       height:150px;
       border-radius:999px;
       background:rgba(47,125,87,0.1);
+      display:none;
     }
     .heroInner{
       position:relative;
@@ -130,7 +131,8 @@
     }
     .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .calendarBox{
-      margin-top:14px;
+      margin-top:0;
+      margin-bottom:16px;
       padding:14px;
       border:1px solid var(--line);
       border-radius:22px;
@@ -923,7 +925,7 @@
       padding:4px 3px !important;
       border-radius:10px !important;
       overflow:hidden !important;
-      text-align:left !important;
+      text-align:center !important;
     }
     #calendarOriginalView .calendarDay::before{
       display:none !important;
@@ -932,6 +934,7 @@
       margin:0 0 4px !important;
       font-size:11px !important;
       line-height:1 !important;
+      text-align:center !important;
     }
     #calendarOriginalView .dayBadge{
       top:3px !important;
@@ -1093,12 +1096,6 @@
     </div>
     <div id="statusBox" class="status"></div>
     <div class="card">
-      <label for="b_name">&#22995;&#21517;</label>
-      <input id="b_name" autocomplete="name" placeholder="&#35531;&#36664;&#20837;&#22995;&#21517;">
-      <label for="b_phone">&#38651;&#35441;</label>
-      <input id="b_phone" inputmode="tel" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
-      <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
-      <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
       <div class="calendarBox">
         <div id="calendarOriginalView"></div>
         <div id="calendarModernView">
@@ -1119,6 +1116,12 @@
           <div id="calendarGrid" class="calendarGrid"></div>
         </div>
       </div>
+      <label for="b_name">&#22995;&#21517;</label>
+      <input id="b_name" autocomplete="name" placeholder="&#35531;&#36664;&#20837;&#22995;&#21517;">
+      <label for="b_phone">&#38651;&#35441;</label>
+      <input id="b_phone" inputmode="tel" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
+      <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
+      <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
       <div class="grid2">
         <div class="dateInputBox">
           <label for="b_date">&#26085;&#26399;</label>
