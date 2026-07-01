@@ -1,0 +1,1926 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>&#37324;&#27472;&#23621;&#23478;&#28165;&#28500;&#65372;LINE &#38928;&#32004;</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root{
+      --bg:#f2f7f4;
+      --card:#ffffff;
+      --text:#17231d;
+      --muted:#6b7b72;
+      --green:#2f7d57;
+      --greenDark:#1f5f42;
+      --greenSoft:#e8f5ed;
+      --gold:#d7a446;
+      --red:#c24155;
+      --line:#dce7e1;
+    }
+    *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body{
+      margin:0;
+      padding:14px 14px 38px;
+      background:
+        radial-gradient(circle at 15% 0%,rgba(47,125,87,0.12),transparent 28%),
+        linear-gradient(180deg,#fbfdfc 0%,var(--bg) 100%);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    }
+    .page{ max-width:520px; margin:0 auto; }
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      margin:4px 0 14px;
+      border-radius:24px;
+      background:linear-gradient(135deg,#f8fffb 0%,#eaf6ef 58%,#dceee4 100%);
+      border:1px solid rgba(220,231,225,0.95);
+      box-shadow:0 16px 36px rgba(31,95,66,0.1);
+    }
+    .hero:after{
+      content:"";
+      position:absolute;
+      right:-42px;
+      top:-48px;
+      width:150px;
+      height:150px;
+      border-radius:999px;
+      background:rgba(47,125,87,0.1);
+    }
+    .heroInner{
+      position:relative;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      gap:13px;
+    }
+    .heroLogo{
+      flex:0 0 auto;
+      width:76px;
+      height:62px;
+      object-fit:contain;
+      filter:drop-shadow(0 8px 12px rgba(31,95,66,0.16));
+    }
+    .heroText{
+      min-width:0;
+      flex:1;
+    }
+    .brand{
+      position:relative;
+      z-index:1;
+      font-size:24px;
+      font-weight:950;
+      letter-spacing:0.5px;
+    }
+    .sub{
+      position:relative;
+      z-index:1;
+      margin-top:8px;
+      color:#52685c;
+      font-size:14px;
+      line-height:1.55;
+      font-weight:800;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:16px;
+      box-shadow:0 18px 42px rgba(31,95,66,0.09);
+    }
+    .status{
+      display:none;
+      margin-bottom:12px;
+      padding:12px;
+      border-radius:16px;
+      background:#eef8f2;
+      color:var(--greenDark);
+      font-weight:900;
+      line-height:1.45;
+      box-shadow:0 8px 20px rgba(31,95,66,0.08);
+    }
+    .status.error{ background:#fee2e2; color:#991b1b; }
+    label{
+      display:block;
+      margin:13px 0 7px;
+      color:#34473b;
+      font-size:13px;
+      font-weight:950;
+    }
+    input,select,textarea{
+      width:100%;
+      min-height:48px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      background:#f8fbf9;
+      color:var(--text);
+      font-size:15px;
+      outline:none;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    textarea{ height:86px; resize:none; line-height:1.5; }
+    input:focus,select:focus,textarea:focus{
+      border-color:#7bb997;
+      box-shadow:0 0 0 4px rgba(47,125,87,0.12);
+      background:#fff;
+    }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .calendarBox{
+      margin-top:14px;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:linear-gradient(180deg,#fbfdfc,#f4faf6);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+    .calendarTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .calendarTitle{
+      font-size:17px;
+      font-weight:950;
+      color:#243a2f;
+    }
+    .calendarNav{
+      width:40px;
+      height:40px;
+      border:none;
+      border-radius:14px;
+      background:#fff;
+      color:#1f5f42;
+      font-size:18px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 6px 14px rgba(31,95,66,0.08);
+    }
+    .calendarWeek,
+    .calendarGrid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:6px;
+      transition:opacity .18s ease;
+    }
+    .calendarWeek span{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      padding:6px 0 5px;
+    }
+    .calendarDay{
+      min-height:78px;
+      border:1px solid transparent;
+      border-radius:14px;
+      background:#fff;
+      color:var(--text);
+      font-weight:900;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:3px;
+      padding:5px;
+      box-shadow:0 5px 14px rgba(31,95,66,0.05);
+      transition:transform .1s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .calendarDay.withSlots{
+      justify-content:flex-start;
+      gap:5px;
+    }
+    .calendarDateNum{
+      font-size:14px;
+      line-height:1;
+    }
+    .calendarDateMeta{
+      min-height:13px;
+      font-size:10px;
+      line-height:1;
+      color:var(--muted);
+      font-weight:900;
+    }
+    .calendarSlotStack{
+      width:100%;
+      display:grid;
+      gap:3px;
+    }
+    .calendarMiniSlot{
+      width:100%;
+      min-height:17px;
+      border:none;
+      border-radius:7px;
+      font-size:10px;
+      font-weight:950;
+      line-height:1;
+      padding:3px 2px;
+      cursor:pointer;
+    }
+    .calendarMiniSlot.free{
+      background:#dcfce7;
+      color:#166534;
+    }
+    .calendarMiniSlot.full{
+      background:#eef2f7;
+      color:#94a3b8;
+      cursor:not-allowed;
+    }
+    .calendarMiniSlot:active{
+      transform:scale(0.96);
+    }
+    .calendarDay.hasFree{
+      background:linear-gradient(180deg,#f2fbf5,#e5f5eb);
+      color:#1f5f42;
+      border-color:#cce8d6;
+    }
+    .calendarDay.fullDay{
+      background:#fff4f2;
+      color:var(--red);
+      border-color:#f3d4cf;
+    }
+    .calendarDay:active,
+    .calendarNav:active{
+      transform:scale(0.96);
+    }
+    .calendarDay.today{
+      border-color:#7bb997;
+      color:#1f5f42;
+    }
+    .calendarDay.selected{
+      background:linear-gradient(180deg,var(--green),var(--greenDark));
+      color:white;
+      box-shadow:0 10px 22px rgba(47,125,87,0.24);
+    }
+    .calendarDay.selected .calendarDateMeta{
+      color:white;
+    }
+    .calendarDay.selected .calendarMiniSlot.free{
+      background:rgba(255,255,255,0.92);
+      color:#166534;
+    }
+    .calendarDay.selected .calendarMiniSlot.full{
+      background:rgba(255,255,255,0.28);
+      color:rgba(255,255,255,0.82);
+    }
+    .calendarDay.disabled{
+      background:#eef2f7;
+      color:#b4bdc8;
+      cursor:not-allowed;
+    }
+    .calendarDay.loadingDay{
+      background:linear-gradient(90deg,#f2f6f4 0%,#ffffff 45%,#f2f6f4 90%);
+      background-size:220% 100%;
+      animation:calendarPulse 1.2s ease-in-out infinite;
+      color:#9aa8a0;
+    }
+    @keyframes calendarPulse{
+      0%{ background-position:100% 0; }
+      100%{ background-position:-100% 0; }
+    }
+    #calendarOriginalView{
+      transition:opacity .18s ease;
+    }
+    #calendarOriginalView:empty{
+      display:none;
+    }
+    #calendarOriginalView .calendarCard{
+      position:relative;
+      overflow:hidden;
+      border-radius:20px;
+      padding:12px;
+      background:linear-gradient(180deg,#fbfdfc,#f4faf6);
+      border:1px solid var(--line);
+      box-shadow:0 12px 28px rgba(31,95,66,0.08);
+    }
+    #calendarOriginalView .monthHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    #calendarOriginalView .monthTitle{
+      font-size:17px;
+      font-weight:950;
+      color:#243a2f;
+    }
+    #calendarOriginalView .monthNav{
+      display:flex;
+      gap:6px;
+    }
+    #calendarOriginalView .monthNavBtn{
+      border-radius:12px;
+      padding:9px 10px;
+      background:#fff;
+      color:#1f5f42;
+      font-size:12px;
+      font-weight:950;
+      cursor:pointer;
+      box-shadow:0 6px 14px rgba(31,95,66,0.08);
+    }
+    #calendarOriginalView .monthNavBtn.primary{
+      background:linear-gradient(180deg,var(--green),var(--greenDark));
+      color:#fff;
+    }
+    #calendarOriginalView .monthNavBtn.disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    #calendarOriginalView .calendarLegend{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin:8px 0 10px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+    }
+    #calendarOriginalView .legendItem{
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    #calendarOriginalView .legendDot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      display:inline-block;
+    }
+    #calendarOriginalView .legendDot.free{ background:#16a34a; }
+    #calendarOriginalView .legendDot.booked{ background:#dc2626; }
+    #calendarOriginalView .legendDot.closed{ background:#64748b; }
+    #calendarOriginalView .monthCalendar{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:6px;
+    }
+    #calendarOriginalView .weekCell{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:950;
+      padding:5px 0;
+    }
+    #calendarOriginalView .calendarDate{
+      font-size:13px;
+      font-weight:950;
+      margin-bottom:4px;
+    }
+    #calendarOriginalView .calendarDay.otherMonth,
+    #calendarOriginalView .calendarDay.pastDay{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    #calendarOriginalView .calendarDay.fullBooked{
+      background:#fff4f2;
+      color:var(--red);
+      border-color:#f3d4cf;
+    }
+    #calendarOriginalView .calendarDay.fullClosed{
+      background:#eef2f7;
+      color:#64748b;
+      border-color:#d7dee8;
+    }
+    #calendarOriginalView .calendarSlots{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:3px;
+      width:100%;
+    }
+    #calendarOriginalView .calendarMiniSlot{
+      min-height:18px;
+      border-radius:7px;
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:10px;
+      font-weight:950;
+    }
+    #calendarOriginalView .calendarMiniSlot.free{ background:#16a34a; }
+    #calendarOriginalView .calendarMiniSlot.booked{ background:#dc2626; }
+    #calendarOriginalView .calendarMiniSlot.closed{ background:#64748b; }
+    #calendarOriginalView .dayStatusBadge,
+    #calendarOriginalView .calendarSummary{
+      display:none;
+    }
+    #calendarOriginalView .dayBadge{
+      position:absolute;
+      top:4px;
+      right:4px;
+      padding:2px 5px;
+      border-radius:999px;
+      color:white;
+      font-size:9px;
+      font-weight:950;
+      background:#2f7d57;
+    }
+    #calendarOriginalView .tomorrowBadge{
+      background:#d7a446;
+    }
+    #calendarOriginalView .dayDetail{
+      margin-top:12px;
+      padding:12px;
+      border-radius:18px;
+      background:#fff;
+      border:1px solid var(--line);
+      box-shadow:0 10px 22px rgba(31,95,66,0.07);
+    }
+    #calendarOriginalView .dayDetailHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    #calendarOriginalView .dayDetailTitle{
+      font-size:15px;
+      font-weight:950;
+    }
+    #calendarOriginalView .dayReloadBtn{
+      border-radius:999px;
+      padding:7px 10px;
+      background:#eef2f7;
+      color:#34473b;
+      font-size:12px;
+      font-weight:950;
+      cursor:pointer;
+    }
+    #calendarOriginalView .calendarCard{
+      background:linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,252,255,0.82));
+      border:1px solid rgba(125,211,252,0.52);
+      border-radius:22px;
+      padding:14px;
+      margin-bottom:14px;
+      box-shadow:0 28px 62px rgba(8,145,178,0.16),0 6px 20px rgba(15,23,42,0.045);
+      backdrop-filter:blur(18px) saturate(1.12);
+      position:relative;
+      overflow:hidden;
+    }
+    #calendarOriginalView .calendarCard:before{
+      content:"";
+      position:absolute;
+      inset:0 0 auto 0;
+      height:4px;
+      background:linear-gradient(90deg,#06b6d4,#2563eb,#14b8a6);
+      box-shadow:0 0 18px rgba(6,182,212,0.40);
+    }
+    #calendarOriginalView .calendarCard:after{
+      content:"";
+      position:absolute;
+      inset:4px 0 auto 0;
+      height:110px;
+      background:
+        linear-gradient(180deg,rgba(224,242,254,0.60),rgba(224,242,254,0)),
+        linear-gradient(90deg,transparent 0%,rgba(34,211,238,0.12) 48%,transparent 100%);
+      pointer-events:none;
+    }
+    #calendarOriginalView .calendarCard > *{
+      position:relative;
+    }
+    #calendarOriginalView .monthHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    #calendarOriginalView .monthTitle{
+      font-size:22px;
+      font-weight:900;
+      color:#0b1220;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    #calendarOriginalView .monthTitle:before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#22d3ee;
+      box-shadow:0 0 12px rgba(34,211,238,0.75);
+    }
+    #calendarOriginalView .monthNav{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    #calendarOriginalView .monthNavBtn{
+      min-height:32px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:rgba(241,245,249,0.82);
+      color:#334155;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+      border:1px solid rgba(148,210,226,0.36);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.78);
+    }
+    #calendarOriginalView .monthNavBtn.primary{
+      background:linear-gradient(180deg,#06b6d4,#0891b2);
+      color:white;
+      border-color:#0891b2;
+      box-shadow:0 8px 18px rgba(8,145,178,0.26),0 0 0 1px rgba(255,255,255,0.32) inset;
+    }
+    #calendarOriginalView .monthNavBtn.disabled{
+      opacity:0.42;
+      cursor:default;
+      pointer-events:none;
+    }
+    #calendarOriginalView .calendarLegend{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:7px;
+      margin-bottom:12px;
+    }
+    #calendarOriginalView .legendItem{
+      min-height:28px;
+      border-radius:999px;
+      background:rgba(248,252,255,0.78);
+      color:#334155;
+      border:1px solid rgba(148,210,226,0.38);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:5px;
+      font-size:11px;
+      font-weight:900;
+    }
+    #calendarOriginalView .legendDot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#94a3b8;
+      box-shadow:0 0 8px rgba(148,163,184,0.32);
+    }
+    #calendarOriginalView .legendDot.free{ background:#16a34a; box-shadow:0 0 9px rgba(22,163,74,0.45); }
+    #calendarOriginalView .legendDot.booked{ background:#dc2626; box-shadow:0 0 9px rgba(220,38,38,0.40); }
+    #calendarOriginalView .legendDot.closed{ background:#64748b; box-shadow:0 0 9px rgba(100,116,139,0.38); }
+    #calendarOriginalView .monthCalendar{
+      display:grid;
+      grid-template-columns:repeat(7,minmax(0,1fr));
+      gap:5px;
+    }
+    #calendarOriginalView .weekCell{
+      text-align:center;
+      font-size:12px;
+      font-weight:900;
+      color:#64748b;
+      padding:5px 0;
+      background:rgba(248,250,252,0.74);
+      border-radius:999px;
+      border:1px solid rgba(148,210,226,0.22);
+    }
+    #calendarOriginalView .calendarDay{
+      min-height:78px;
+      border:1px solid rgba(125,211,252,0.40);
+      border-radius:16px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,252,255,0.84));
+      padding:5px;
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 4px 14px rgba(15,23,42,0.04),inset 0 1px 0 rgba(255,255,255,0.78),inset 0 0 0 1px rgba(255,255,255,0.34);
+    }
+    #calendarOriginalView .calendarDay:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      border-radius:inherit;
+      background:
+        linear-gradient(90deg,rgba(34,211,238,0.16),transparent 42%) top left / 100% 1px no-repeat,
+        linear-gradient(180deg,rgba(34,211,238,0.12),transparent 46%) top left / 1px 100% no-repeat;
+      opacity:0.70;
+    }
+    #calendarOriginalView .calendarDay:active{
+      transform:scale(0.97);
+    }
+    #calendarOriginalView .calendarDay.otherMonth{
+      opacity:0.45;
+      background:rgba(241,245,249,0.66);
+      cursor:default;
+    }
+    #calendarOriginalView .calendarDay.pastDay{
+      opacity:0.48;
+      background:rgba(241,245,249,0.66);
+      color:#94a3b8;
+      cursor:default;
+    }
+    #calendarOriginalView .calendarDay.pastDay:active{
+      transform:none;
+    }
+    #calendarOriginalView .calendarDay.today{
+      border-color:#06b6d4;
+      background:linear-gradient(180deg,#ecfeff 0%,#ffffff 72%);
+      box-shadow:0 0 0 2px rgba(6,182,212,0.24),0 12px 30px rgba(8,145,178,0.18);
+    }
+    #calendarOriginalView .calendarDay.hasFree{
+      border-color:rgba(22,163,74,0.50);
+    }
+    #calendarOriginalView .calendarDay.fullBooked{
+      border-color:rgba(220,38,38,0.50);
+      background:linear-gradient(180deg,rgba(254,242,242,0.96),rgba(255,255,255,0.86));
+    }
+    #calendarOriginalView .calendarDay.fullClosed{
+      border-color:rgba(100,116,139,0.46);
+      background:linear-gradient(180deg,rgba(241,245,249,0.96),rgba(255,255,255,0.84));
+    }
+    #calendarOriginalView .dayBadge{
+      position:absolute;
+      top:5px;
+      right:5px;
+      padding:2px 5px;
+      border-radius:999px;
+      color:white;
+      font-size:9px;
+      font-weight:900;
+      box-shadow:0 4px 10px rgba(15,23,42,0.18);
+    }
+    #calendarOriginalView .dayBadge.todayBadge{
+      background:linear-gradient(180deg,#22d3ee,#0891b2);
+    }
+    #calendarOriginalView .dayBadge.tomorrowBadge{
+      background:linear-gradient(180deg,#818cf8,#4f46e5);
+    }
+    #calendarOriginalView .calendarDay.selected{
+      border-color:#0f766e;
+      background:linear-gradient(180deg,#f0fdfa,#ffffff);
+      box-shadow:0 0 0 2px rgba(15,118,110,0.18),0 10px 24px rgba(15,118,110,0.12);
+    }
+    #calendarOriginalView .calendarDate{
+      font-size:12px;
+      font-weight:900;
+      color:#0f172a;
+      margin-bottom:5px;
+    }
+    #calendarOriginalView .calendarSlots{
+      display:flex;
+      gap:3px;
+      margin-top:6px;
+    }
+    #calendarOriginalView .calendarMiniSlot{
+      flex:1;
+      height:22px;
+      border-radius:999px;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:10px;
+      font-weight:900;
+      box-shadow:inset 0 -1px 0 rgba(0,0,0,0.10),0 2px 7px rgba(15,23,42,0.09);
+    }
+    #calendarOriginalView .calendarMiniSlot.free{ background:#16a34a; box-shadow:0 0 9px rgba(22,163,74,0.22),inset 0 -1px 0 rgba(0,0,0,0.12); }
+    #calendarOriginalView .calendarMiniSlot.booked{ background:#dc2626; box-shadow:0 0 9px rgba(220,38,38,0.20),inset 0 -1px 0 rgba(0,0,0,0.12); }
+    #calendarOriginalView .calendarMiniSlot.closed{ background:#64748b; box-shadow:0 0 9px rgba(100,116,139,0.20),inset 0 -1px 0 rgba(0,0,0,0.12); }
+    #calendarOriginalView .dayStatusBadge{
+      display:block;
+      width:max-content;
+      max-width:100%;
+      margin-top:5px;
+      padding:3px 6px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    #calendarOriginalView .dayStatusBadge.free{
+      background:#dcfce7;
+      color:#166534;
+    }
+    #calendarOriginalView .dayStatusBadge.booked{
+      background:#fee2e2;
+      color:#991b1b;
+    }
+    #calendarOriginalView .dayStatusBadge.closed{
+      background:#e2e8f0;
+      color:#475569;
+    }
+    #calendarOriginalView .calendarSummary{
+      margin-top:6px;
+      font-size:10px;
+      color:#64748b;
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    #calendarOriginalView .dayDetail{
+      margin-top:12px;
+      padding:14px;
+      border-radius:20px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.92),rgba(248,252,255,0.84));
+      border:1px solid rgba(148,210,226,0.42);
+      box-shadow:0 14px 32px rgba(8,145,178,0.10),inset 0 1px 0 rgba(255,255,255,0.78);
+    }
+    #calendarOriginalView .dayDetailHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    #calendarOriginalView .dayDetailTitle{
+      font-size:16px;
+      font-weight:900;
+    }
+    #calendarOriginalView .dayReloadBtn{
+      flex:0 0 auto;
+      border-radius:999px;
+      background:rgba(241,245,249,0.84);
+      color:#334155;
+      padding:7px 10px;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+      border:1px solid rgba(148,210,226,0.38);
+    }
+    .dateInputBox{
+      display:none;
+    }
+    .dateInputBox + div{
+      grid-column:1 / -1;
+    }
+    .slotList{ display:grid; gap:8px; margin-top:10px; }
+    .slotBtn{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:13px 14px;
+      background:linear-gradient(180deg,#f1fbf5,#e5f5eb);
+      color:#1f5f42;
+      font-weight:900;
+      text-align:left;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(31,95,66,0.07);
+    }
+    .slotBtn.full{
+      background:#f2f5f7;
+      color:#9aa6b2;
+      cursor:not-allowed;
+      text-decoration:line-through;
+      box-shadow:none;
+    }
+    .slotBtn.selected{
+      border-color:#2f7d57;
+      box-shadow:0 0 0 4px rgba(47,125,87,0.12);
+      background:#dcfce7;
+    }
+    .btn{
+      width:100%;
+      min-height:50px;
+      margin-top:16px;
+      border:none;
+      border-radius:18px;
+      background:linear-gradient(180deg,var(--green),var(--greenDark));
+      color:white;
+      font-size:16px;
+      font-weight:950;
+      cursor:pointer;
+      box-shadow:0 14px 28px rgba(47,125,87,0.22);
+    }
+    .btn:active{ transform:scale(0.98); }
+    .btn:disabled{ opacity:.58; cursor:default; }
+    .hint{ margin-top:12px; color:var(--muted); font-size:12px; line-height:1.5; text-align:center; }
+    @media (max-width:380px){
+      body{ padding-left:10px; padding-right:10px; }
+      .hero{ padding:14px; }
+      .heroLogo{ width:66px; height:54px; }
+      .brand{ font-size:21px; }
+      .sub{ font-size:12px; }
+      .card{ padding:14px; border-radius:22px; }
+      .calendarBox{ padding:10px; }
+      .calendarGrid{ gap:4px; }
+      .calendarDay{ border-radius:12px; }
+      .calendarDateNum{ font-size:13px; }
+      .calendarDateMeta{ font-size:9px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <div class="heroInner">
+        <img class="heroLogo" src="logo.png" alt="&#37324;&#27472;&#23621;&#23478;&#28165;&#28500;">
+        <div class="heroText">
+          <div class="brand">&#37324;&#27472;&#23621;&#23478;&#28165;&#28500;</div>
+          <div class="sub">LINE &#32218;&#19978;&#38928;&#32004;&#12290;&#38928;&#32004;&#25104;&#31435;&#24460;&#65292;&#26126;&#32048;&#26371;&#33258;&#21205;&#20659;&#22238;&#32842;&#22825;&#23460;&#12290;</div>
+        </div>
+      </div>
+    </div>
+    <div id="statusBox" class="status"></div>
+    <div class="card">
+      <label for="b_name">&#22995;&#21517;</label>
+      <input id="b_name" autocomplete="name" placeholder="&#35531;&#36664;&#20837;&#22995;&#21517;">
+      <label for="b_phone">&#38651;&#35441;</label>
+      <input id="b_phone" inputmode="tel" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
+      <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
+      <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
+      <div class="calendarBox">
+        <div id="calendarOriginalView"></div>
+        <div id="calendarModernView">
+          <div class="calendarTop">
+            <button type="button" class="calendarNav" onclick="moveCalendarMonth(-1)">&#8249;</button>
+            <div id="calendarTitle" class="calendarTitle"></div>
+            <button type="button" class="calendarNav" onclick="moveCalendarMonth(1)">&#8250;</button>
+          </div>
+          <div class="calendarWeek">
+            <span>&#26085;</span>
+            <span>&#19968;</span>
+            <span>&#20108;</span>
+            <span>&#19977;</span>
+            <span>&#22235;</span>
+            <span>&#20116;</span>
+            <span>&#20845;</span>
+          </div>
+          <div id="calendarGrid" class="calendarGrid"></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="dateInputBox">
+          <label for="b_date">&#26085;&#26399;</label>
+          <input id="b_date" type="date" onchange="loadAvailability()">
+        </div>
+        <div>
+          <label for="b_period">&#26178;&#27573;</label>
+          <select id="b_period" onchange="syncDefaultTime()">
+            <option value="morning">&#19978;&#21320;</option>
+            <option value="afternoon">&#19979;&#21320;</option>
+            <option value="evening">&#26202;&#19978;</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div>
+          <label for="b_startTime">&#38283;&#22987;</label>
+          <select id="b_startTime" onchange="syncEndTimeOptions()"></select>
+        </div>
+        <div>
+          <label for="b_endTime">&#32080;&#26463;</label>
+          <select id="b_endTime"></select>
+        </div>
+      </div>
+      <div id="slotList" class="slotList"></div>
+      <label for="b_service">&#26381;&#21209;&#38917;&#30446;</label>
+      <select id="b_service">
+        <option value="regular cleaning">&#19968;&#33324;&#28165;&#28500;</option>
+        <option value="post renovation cleaning">&#35037;&#28514;&#24460;&#28165;&#28500;</option>
+        <option value="deep cleaning">&#22823;&#25475;&#38500;</option>
+        <option value="other">&#20854;&#20182;</option>
+      </select>
+      <label for="b_roomType">&#22378;&#25976; / &#25151;&#22411;</label>
+      <select id="b_roomType">
+        <option value="studio">&#22871;&#25151;</option>
+        <option value="1 room">1&#25151;</option>
+        <option value="2 rooms">2&#25151;</option>
+        <option value="3 rooms">3&#25151;</option>
+        <option value="4+ rooms">4&#25151;&#20197;&#19978;</option>
+        <option value="other">&#20854;&#20182; / &#20633;&#35387;&#22635;&#23531;</option>
+      </select>
+      <label for="b_pet">&#23541;&#29289;</label>
+      <select id="b_pet">
+        <option value="no pet">&#28961;&#23541;&#29289;</option>
+        <option value="cat">&#26377;&#35987;</option>
+        <option value="dog">&#26377;&#29399;</option>
+        <option value="other pet">&#20854;&#20182;&#23541;&#29289;</option>
+      </select>
+      <label for="b_note">&#20633;&#35387;</label>
+      <textarea id="b_note" placeholder="&#21487;&#22635;&#23531;&#29305;&#27530;&#38656;&#27714;&#12289;&#20572;&#36554;&#12289;&#38272;&#31105;&#31561;&#36039;&#35338;"></textarea>
+      <button id="submitBtn" class="btn" type="button" onclick="submitBooking()">&#36865;&#20986;&#38928;&#32004;</button>
+      <div class="hint">&#35531;&#22312; LINE &#23448;&#26041;&#24115;&#34399;&#20839;&#38283;&#21855;&#27492;&#38913;&#65292;&#25165;&#33021;&#33258;&#21205;&#20659;&#36865;&#38928;&#32004;&#26126;&#32048;&#12290;</div>
+    </div>
+  </div>
+
+  <script>
+    var LIFF_ID = "2010106417-lLCmAcx2";
+    var GAS_API_URL = "https://script.google.com/macros/s/AKfycbzdX6xdKv9bGb-RWeMWet059muWd_Lm0RjsUDdWGbSNrdid_rozpjpHgK4lYW7OJKPs/exec";
+    var liffReady = false;
+    var selectedSlotKey = "";
+    var monthAvailability = {};
+    var calendarCache = {};
+    var isMonthLoading = false;
+    var PERIOD_RULES = {
+      morning:{
+        label:"\u4e0a\u5348",
+        starts:["08:00","08:30","09:00"],
+        ends:["11:00","11:30","12:00"],
+        defaultStart:"08:00",
+        defaultEnd:"12:00"
+      },
+      afternoon:{
+        label:"\u4e0b\u5348",
+        starts:["13:30","14:00","14:30"],
+        ends:["16:30","17:00","17:30"],
+        defaultStart:"13:30",
+        defaultEnd:"17:30"
+      },
+      evening:{
+        label:"\u665a\u4e0a",
+        starts:["17:30"],
+        ends:["20:30"],
+        defaultStart:"17:30",
+        defaultEnd:"20:30"
+      }
+    };
+    var calendarViewDate = new Date();
+
+    function t(key){
+      var map = {
+        submit:"\u9001\u51fa\u9810\u7d04",
+        submitting:"\u9001\u51fa\u4e2d...",
+        liffFail:"LIFF \u521d\u59cb\u5316\u5931\u6557\uff1a",
+        missingTitle:"\u8cc7\u6599\u672a\u5b8c\u6210",
+        needName:"\u8acb\u8f38\u5165\u59d3\u540d",
+        needPhone:"\u8acb\u8f38\u5165\u96fb\u8a71",
+        needAddress:"\u8acb\u8f38\u5165\u670d\u52d9\u5730\u5740",
+        needDate:"\u8acb\u9078\u64c7\u65e5\u671f",
+        needPeriod:"\u8acb\u9078\u64c7\u6642\u6bb5",
+        loadingSlots:"\u6b63\u5728\u67e5\u8a62\u7a7a\u6a94...",
+        slotFail:"\u7a7a\u6a94\u67e5\u8a62\u5931\u6557",
+        apiFail:"\u7cfb\u7d71\u9023\u7dda\u5931\u6557\uff0c\u8acb\u91cd\u65b0\u958b\u555f\u9810\u7d04\u9801\u518d\u8a66\u3002",
+        needSlot:"\u8acb\u5148\u9ede\u9078\u4e0a\u65b9\u7da0\u8272\u53ef\u9810\u7d04\u6642\u6bb5",
+        available:"\u53ef\u9810\u7d04 ",
+        full:"\u5df2\u6eff ",
+        submittingStatus:"\u9810\u7d04\u9001\u51fa\u4e2d\uff0c\u8acb\u7a0d\u5019...",
+        bookedTitle:"\u6642\u6bb5\u5df2\u88ab\u9810\u7d04",
+        bookedFallback:"\u8acb\u91cd\u65b0\u9078\u64c7\u6642\u6bb5\u3002",
+        failedTitle:"\u9810\u7d04\u5931\u6557",
+        failedFallback:"\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002",
+        successTitle:"\u9810\u7d04\u6210\u529f",
+        successText:"\u6b63\u5728\u540c\u6b65\u660e\u7d30\u5230 LINE \u804a\u5929\u5ba4...",
+        notLine:"\u9810\u7d04\u6210\u529f\u3002\u6b64\u9801\u4e0d\u662f\u5728 LINE \u5167\u958b\u555f\uff0c\u56e0\u6b64\u4e0d\u6703\u81ea\u52d5\u95dc\u9589\u3002",
+        lineFail:"LINE \u50b3\u8a0a\u5931\u6557\uff1a",
+        connectionFail:"\u9023\u7dda\u5931\u6557"
+      };
+      return map[key] || key;
+    }
+
+    function showStatus(message,isError){
+      var box = document.getElementById("statusBox");
+      box.textContent = message;
+      box.className = "status" + (isError ? " error" : "");
+      box.style.display = "block";
+    }
+
+    function setLoading(isLoading){
+      var btn = document.getElementById("submitBtn");
+      btn.disabled = isLoading;
+      btn.textContent = isLoading ? t("submitting") : t("submit");
+    }
+
+    function initLiff(){
+      return liff.init({ liffId: LIFF_ID })
+        .then(function(){
+          liffReady = true;
+          if(!liff.isLoggedIn() && liff.isInClient()){
+            liff.login();
+          }
+        })
+        .catch(function(error){
+          showStatus(t("liffFail") + (error.message || error), true);
+        });
+    }
+
+    function syncDefaultTime(){
+      selectedSlotKey = "";
+      var period = document.getElementById("b_period").value;
+      var rule = PERIOD_RULES[period] || PERIOD_RULES.morning;
+      setSelectOptions(document.getElementById("b_startTime"),rule.starts);
+      document.getElementById("b_startTime").value = rule.defaultStart;
+      syncEndTimeOptions(rule.defaultEnd);
+    }
+
+    function syncEndTimeOptions(preferredEnd){
+      var period = document.getElementById("b_period").value;
+      var rule = PERIOD_RULES[period] || PERIOD_RULES.morning;
+      var start = document.getElementById("b_startTime").value || rule.defaultStart;
+      var minEnd = minutesFromTime(start) + 180;
+      var validEnds = rule.ends.filter(function(time){
+        return minutesFromTime(time) >= minEnd;
+      });
+      if(validEnds.length == 0){
+        validEnds = [rule.defaultEnd];
+      }
+      setSelectOptions(document.getElementById("b_endTime"),validEnds);
+      document.getElementById("b_endTime").value =
+        validEnds.indexOf(preferredEnd) >= 0 ? preferredEnd : validEnds[validEnds.length - 1];
+    }
+
+    function setSelectOptions(select,values){
+      select.innerHTML = "";
+      values.forEach(function(value){
+        var option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+    }
+
+    function minutesFromTime(value){
+      var parts = String(value || "00:00").split(":");
+      return Number(parts[0]) * 60 + Number(parts[1]);
+    }
+
+    function getPeriodText(period){
+      if(PERIOD_RULES[period]){ return PERIOD_RULES[period].label; }
+      return period || "";
+    }
+
+    function getServiceText(service){
+      if(service == "regular cleaning"){ return "\u4e00\u822c\u6e05\u6f54"; }
+      if(service == "post renovation cleaning"){ return "\u88dd\u6f62\u5f8c\u6e05\u6f54"; }
+      if(service == "deep cleaning"){ return "\u5927\u6383\u9664"; }
+      return "\u5176\u4ed6";
+    }
+
+    function getPetText(pet){
+      if(pet == "no pet"){ return "\u7121\u5bf5\u7269"; }
+      if(pet == "cat"){ return "\u6709\u8c93"; }
+      if(pet == "dog"){ return "\u6709\u72d7"; }
+      return "\u5176\u4ed6\u5bf5\u7269";
+    }
+
+    function getFormData(){
+      var period = document.getElementById("b_period").value;
+      var service = document.getElementById("b_service").value;
+      return {
+        action:"createCustomerBooking",
+        name:document.getElementById("b_name").value.trim(),
+        phone:document.getElementById("b_phone").value.trim(),
+        address:document.getElementById("b_address").value.trim(),
+        date:document.getElementById("b_date").value,
+        period:getPeriodText(period),
+        startTime:document.getElementById("b_startTime").value,
+        endTime:document.getElementById("b_endTime").value,
+        service:getServiceText(service),
+        roomType:document.getElementById("b_roomType").value,
+        pet:getPetText(document.getElementById("b_pet").value),
+        note:document.getElementById("b_note").value.trim()
+      };
+    }
+
+    function validateForm(data){
+      if(!data.name){ return t("needName"); }
+      if(!data.phone){ return t("needPhone"); }
+      if(!data.address){ return t("needAddress"); }
+      if(!data.date){ return t("needDate"); }
+      if(!isFullDateText(data.date)){ return "\u8acb\u9078\u64c7\u5b8c\u6574\u65e5\u671f"; }
+      if(!data.period){ return t("needPeriod"); }
+      if(!isSelectedSlotStillCurrent()){
+        return t("needSlot");
+      }
+      var timeError = validateSelectedTime();
+      if(timeError){ return timeError; }
+      return "";
+    }
+
+    function isSelectedSlotStillCurrent(){
+      var key =
+        document.getElementById("b_date").value + "|" +
+        document.getElementById("b_period").value + "|" +
+        document.getElementById("b_startTime").value + "|" +
+        document.getElementById("b_endTime").value;
+
+      return selectedSlotKey != "" &&
+        selectedSlotKey == key;
+    }
+
+    function validateSelectedTime(){
+      var period = document.getElementById("b_period").value;
+      var rule = PERIOD_RULES[period] || PERIOD_RULES.morning;
+      var start = document.getElementById("b_startTime").value;
+      var end = document.getElementById("b_endTime").value;
+      if(rule.starts.indexOf(start) < 0 || rule.ends.indexOf(end) < 0){
+        return "\u8acb\u9078\u64c7" + rule.label + "\u6642\u6bb5\u5167\u7684\u6642\u9593";
+      }
+      if(minutesFromTime(end) - minutesFromTime(start) < 180){
+        return "\u6bcf\u6b21\u9810\u7d04\u81f3\u5c11\u9700\u8981 3 \u5c0f\u6642";
+      }
+      return "";
+    }
+
+    function isFullDateText(value){
+      return /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(value || ""));
+    }
+
+    function sendLineDetail(data){
+      if(!liffReady || !liff.isInClient()){
+        return Promise.resolve();
+      }
+      var br = String.fromCharCode(10);
+      var text =
+        "\u2705 \u9810\u7d04\u6210\u529f\u901a\u77e5" + br +
+        "--------------------" + br +
+        "\u59d3\u540d\uff1a" + data.name + br +
+        "\u65e5\u671f\uff1a" + data.date + br +
+        "\u6642\u9593\uff1a" + data.startTime + "-" + data.endTime + br +
+        "\u670d\u52d9\uff1a" + data.service + br +
+        "\u5730\u5740\uff1a" + data.address + br +
+        "--------------------" + br +
+        "\u7ba1\u7406\u54e1\u5df2\u540c\u6b65\u6536\u5230\u901a\u77e5\uff0c\u5f8c\u7e8c\u6703\u518d\u8207\u60a8\u78ba\u8a8d\u3002";
+      return liff.sendMessages([{ type:"text", text:text }]);
+    }
+
+    function jsonpRequest(params){
+      return new Promise(function(resolve,reject){
+        var callbackName = "jsonpCallback_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+        var script = document.createElement("script");
+        var timer = setTimeout(function(){
+          cleanup();
+          reject(new Error("API timeout"));
+        },20000);
+        function cleanup(){
+          clearTimeout(timer);
+          try{ delete window[callbackName]; }catch(error){ window[callbackName] = undefined; }
+          if(script.parentNode){ script.parentNode.removeChild(script); }
+        }
+        window[callbackName] = function(result){
+          cleanup();
+          resolve(result || {});
+        };
+        script.onerror = function(){
+          cleanup();
+          reject(new Error("\u7cfb\u7d71\u9023\u7dda\u5931\u6557\uff0c\u8acb\u78ba\u8a8d Apps Script \u5df2\u90e8\u7f72\u6700\u65b0\u7248\u672c\u3002"));
+        };
+        params.callback = callbackName;
+        script.src = GAS_API_URL + "?" + Object.keys(params).map(function(key){
+          return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+        }).join("&");
+        document.body.appendChild(script);
+      });
+    }
+
+    function renderCalendar(){
+      var title = document.getElementById("calendarTitle");
+      var grid = document.getElementById("calendarGrid");
+      var selectedDate = document.getElementById("b_date").value;
+      var today = new Date();
+      var year = calendarViewDate.getFullYear();
+      var month = calendarViewDate.getMonth();
+      var first = new Date(year,month,1);
+      var daysInMonth = new Date(year,month + 1,0).getDate();
+      var startDay = first.getDay();
+      var currentMonthStart = new Date(today.getFullYear(),today.getMonth(),1);
+      var maxMonthStart = new Date(today.getFullYear(),today.getMonth() + 1,1);
+
+      today.setHours(0,0,0,0);
+      title.textContent = year + "\u5e74" + (month + 1) + "\u6708";
+      grid.innerHTML = "";
+
+      for(var blank = 0; blank < startDay; blank++){
+        var blankCell = document.createElement("div");
+        grid.appendChild(blankCell);
+      }
+
+      for(var day = 1; day <= daysInMonth; day++){
+        var date = new Date(year,month,day);
+        var dateText = formatDateLocal(date);
+        var btn = document.createElement("button");
+        var disabled =
+          date < today ||
+          first < currentMonthStart ||
+          first > maxMonthStart;
+
+        var dayData =
+          monthAvailability[dateText];
+        var num =
+          document.createElement("span");
+        var meta =
+          document.createElement("span");
+
+        btn.type = "button";
+        btn.className = "calendarDay";
+        num.className = "calendarDateNum";
+        meta.className = "calendarDateMeta";
+        num.textContent = day;
+
+        if(!disabled){
+          if(dayData){
+            if(dayData.availableCount > 0){
+              btn.classList.add("hasFree");
+              meta.textContent =
+                "\u53ef\u7d04" + dayData.availableCount;
+            }else{
+              btn.classList.add("fullDay");
+              meta.textContent = "\u5df2\u6eff";
+            }
+          }else{
+            btn.classList.add("loadingDay");
+            meta.textContent = "\u67e5\u8a62\u4e2d";
+          }
+        }
+
+        btn.appendChild(num);
+        btn.appendChild(meta);
+
+        if(dateText == formatDateLocal(today)){
+          btn.classList.add("today");
+        }
+
+        if(dateText == selectedDate){
+          btn.classList.add("selected");
+        }
+
+        if(disabled){
+          btn.classList.add("disabled");
+          btn.disabled = true;
+        }else{
+          btn.onclick = function(value){
+            return function(){
+              selectCalendarDate(value);
+            };
+          }(dateText);
+        }
+
+        grid.appendChild(btn);
+      }
+    }
+
+    function updateCalendarTitle(){
+      var title = document.getElementById("calendarTitle");
+      var year = calendarViewDate.getFullYear();
+      var month = calendarViewDate.getMonth();
+      title.textContent = year + "\u5e74" + (month + 1) + "\u6708";
+    }
+
+    function moveCalendarMonth(offset){
+      var today = new Date();
+      var target =
+        new Date(
+          calendarViewDate.getFullYear(),
+          calendarViewDate.getMonth() + offset,
+          1
+        );
+      var minMonth =
+        new Date(today.getFullYear(),today.getMonth(),1);
+      var maxMonth =
+        new Date(today.getFullYear(),today.getMonth() + 1,1);
+
+      if(target < minMonth || target > maxMonth){
+        return;
+      }
+
+      calendarViewDate = target;
+      monthAvailability = {};
+      renderCalendar();
+      loadMonthAvailability();
+    }
+
+    function selectCalendarDate(dateText){
+      document.getElementById("b_date").value = dateText;
+      selectedSlotKey = "";
+      clearSelectedSlots();
+      highlightCalendarDate(dateText);
+      if(monthAvailability[dateText]){
+        renderSlots(monthAvailability[dateText].slots || []);
+      }else{
+        loadAvailability();
+      }
+    }
+
+    function highlightCalendarDate(dateText){
+      Array.prototype.forEach.call(document.querySelectorAll(".calendarDay"),function(item){
+        item.classList.remove("selected");
+      });
+
+      var selected =
+        document.querySelector('.calendarDay[data-date="' + dateText + '"]');
+
+      if(selected){
+        selected.classList.add("selected");
+      }
+    }
+
+    function loadMonthAvailability(){
+      var year = calendarViewDate.getFullYear();
+      var month = calendarViewDate.getMonth() + 1;
+      var monthOffset =
+        getCalendarMonthOffset();
+      var cacheKey =
+        "original_" + monthOffset;
+      var calendarContainer =
+        document.getElementById("calendarOriginalView");
+      var modernView =
+        document.getElementById("calendarModernView");
+      var selectedDate =
+        document.getElementById("b_date").value;
+
+      if(calendarCache[cacheKey]){
+        calendarContainer.innerHTML =
+          calendarCache[cacheKey].htmlData || "";
+        calendarContainer.style.display = "block";
+        modernView.style.display = "none";
+        isMonthLoading = false;
+        setupOriginalMonthViewEvents();
+        return;
+      }
+
+      isMonthLoading = true;
+      if(modernView.style.display != "none"){
+        renderCalendar();
+      }
+      if(calendarContainer){
+        calendarContainer.style.opacity = "0.5";
+        calendarContainer.style.pointerEvents = "none";
+      }
+
+      jsonpRequest({
+        api:"getOriginalMonthViewJsonp",
+        monthOffset:monthOffset,
+        selectedDate:selectedDate
+      })
+        .then(function(result){
+          if(calendarContainer){
+            calendarContainer.style.opacity = "1";
+            calendarContainer.style.pointerEvents = "auto";
+          }
+
+          if(result.status != "OK" || !result.htmlData){
+            loadMonthAvailabilityFallback(
+              year,
+              month,
+              "fallback_" + monthOffset,
+              calendarContainer,
+              selectedDate
+            );
+            return;
+          }
+
+          calendarCache[cacheKey] = {
+            htmlData:result.htmlData || ""
+          };
+          isMonthLoading = false;
+          calendarContainer.innerHTML =
+            result.htmlData || "";
+          calendarContainer.style.display = "block";
+          modernView.style.display = "none";
+          setupOriginalMonthViewEvents();
+        })
+        .catch(function(error){
+          if(calendarContainer){
+            calendarContainer.style.opacity = "1";
+            calendarContainer.style.pointerEvents = "auto";
+          }
+          loadMonthAvailabilityFallback(
+            year,
+            month,
+            "fallback_" + monthOffset,
+            calendarContainer,
+            selectedDate
+          );
+        });
+    }
+
+    function getCalendarMonthOffset(){
+      var today = new Date();
+      return (
+        calendarViewDate.getFullYear() -
+        today.getFullYear()
+      ) * 12 +
+      (
+        calendarViewDate.getMonth() -
+        today.getMonth()
+      );
+    }
+
+    function renderCalendarGridData(data){
+      var grid = document.getElementById("calendarGrid");
+      var selectedDate = document.getElementById("b_date").value;
+      var html = "";
+
+      if(!data){
+        renderCalendar();
+        return;
+      }
+
+      document.getElementById("calendarTitle").textContent =
+        data.year + "\u5e74" + data.month + "\u6708";
+      monthAvailability = {};
+
+      for(var blank=0;blank<Number(data.firstDay || 0);blank++){
+        html += "<div></div>";
+      }
+
+      (data.days || []).forEach(function(dayInfo){
+        var slotsArray =
+          dayInfo.slotsArray || [];
+        var availableCount =
+          Number(dayInfo.availableCount || 0);
+        var dayClass =
+          "calendarDay withSlots" +
+          (dayInfo.isPast ? " disabled" : "") +
+          (dayInfo.isToday ? " today" : "") +
+          (!dayInfo.isPast && availableCount > 0 ? " hasFree" : "") +
+          (!dayInfo.isPast && availableCount <= 0 ? " fullDay" : "") +
+          (dayInfo.dateText == selectedDate ? " selected" : "");
+
+        monthAvailability[dayInfo.dateText] = {
+          date:dayInfo.dateText,
+          availableCount:availableCount,
+          slots:slotsArray
+        };
+
+        html +=
+          '<div class="' + dayClass + '" data-date="' + dayInfo.dateText + '"' +
+          '>' +
+          '<span class="calendarDateNum">' + dayInfo.day + '</span>' +
+          '<div class="calendarSlotStack">' +
+          renderCalendarMiniSlot(dayInfo.dateText,dayInfo.slots.morning) +
+          renderCalendarMiniSlot(dayInfo.dateText,dayInfo.slots.afternoon) +
+          renderCalendarMiniSlot(dayInfo.dateText,dayInfo.slots.evening) +
+          '</div>' +
+          '</div>';
+      });
+
+      grid.innerHTML = html;
+    }
+
+    function renderCalendarMiniSlot(dateText,slot){
+      slot =
+        slot || {};
+
+      if(slot.available){
+        return '<button type="button" class="calendarMiniSlot free" data-date="' +
+          dateText +
+          '" data-period="' +
+          slot.period +
+          '">' +
+          slot.label +
+          '</button>';
+      }
+
+      return '<button type="button" class="calendarMiniSlot full" disabled>' +
+        (slot.label || "") +
+        '</button>';
+    }
+
+    function selectCalendarMiniSlot(event,dateText,periodText){
+      if(event){
+        event.stopPropagation();
+        event.preventDefault();
+      }
+
+      document.getElementById("b_date").value = dateText;
+      selectedSlotKey = "";
+      highlightCalendarDate(dateText);
+
+      if(monthAvailability[dateText]){
+        renderSlots(monthAvailability[dateText].slots || []);
+      }
+
+      var slots =
+        monthAvailability[dateText] ?
+        monthAvailability[dateText].slots || [] :
+        [];
+      var matched = null;
+
+      for(var i=0;i<slots.length;i++){
+        if(slots[i].period == periodText && slots[i].available){
+          matched = slots[i];
+          break;
+        }
+      }
+
+      if(matched){
+        document.getElementById("b_period").value =
+          periodKeyFromText(matched.period);
+        syncDefaultTime();
+        document.getElementById("b_startTime").value =
+          matched.startTime;
+        syncEndTimeOptions(matched.endTime);
+        selectedSlotKey =
+          document.getElementById("b_date").value + "|" +
+          document.getElementById("b_period").value + "|" +
+          document.getElementById("b_startTime").value + "|" +
+          document.getElementById("b_endTime").value;
+      }
+    }
+
+    function setupOriginalMonthViewEvents(){
+      Array.prototype.forEach.call(
+        document.querySelectorAll("#calendarOriginalView .bookableSlot"),
+        function(slot){
+          if(slot.getAttribute("data-bound") == "1"){
+            return;
+          }
+          slot.setAttribute("data-bound","1");
+          slot.addEventListener("click",function(event){
+            event.preventDefault();
+            selectOriginalBookableSlot(slot);
+          });
+        }
+      );
+    }
+
+    function selectOriginalBookableSlot(slot){
+      var dateText =
+        slot.getAttribute("data-date") || "";
+      var periodText =
+        slot.getAttribute("data-period") || "";
+
+      document.getElementById("b_date").value = dateText;
+      document.getElementById("b_period").value =
+        periodKeyFromText(periodText);
+      syncDefaultTime();
+      selectedSlotKey =
+        document.getElementById("b_date").value + "|" +
+        document.getElementById("b_period").value + "|" +
+        document.getElementById("b_startTime").value + "|" +
+        document.getElementById("b_endTime").value;
+
+      Array.prototype.forEach.call(
+        document.querySelectorAll("#calendarOriginalView .bookableSlot"),
+        function(item){
+          item.classList.remove("selected");
+        }
+      );
+      slot.classList.add("selected");
+      showStatus(
+        "\u5df2\u9078\u64c7\uff1a" +
+        dateText +
+        " " +
+        periodText,
+        false
+      );
+    }
+
+    function changeMonth(delta){
+      moveCalendarMonth(delta);
+    }
+
+    function goCurrentMonth(){
+      calendarViewDate =
+        new Date(
+          new Date().getFullYear(),
+          new Date().getMonth(),
+          1
+        );
+      loadMonthAvailability();
+    }
+
+    function showCustomerDaySlots(dateText){
+      document.getElementById("b_date").value = dateText;
+      selectedSlotKey = "";
+      loadOriginalDaySlots(dateText);
+    }
+
+    function reloadSelectedDay(){
+      var dateText =
+        document.getElementById("b_date").value;
+
+      if(dateText){
+        loadOriginalDaySlots(dateText);
+      }
+    }
+
+    function loadOriginalDaySlots(dateText){
+      var content =
+        document.getElementById("dayDetailContent");
+      var title =
+        document.getElementById("dayDetailTitle");
+
+      if(title){
+        title.textContent = dateText;
+      }
+      if(content){
+        content.innerHTML =
+          '<div class="status" style="display:block;">' +
+          t("loadingSlots") +
+          '</div>';
+      }
+
+      jsonpRequest({
+        api:"getAvailabilityJsonp",
+        date:dateText
+      })
+        .then(function(result){
+          if(result.status != "OK"){
+            if(content){
+              content.innerHTML =
+                '<div class="status error" style="display:block;">' +
+                (result.message || t("slotFail")) +
+                '</div>';
+            }
+            return;
+          }
+
+          if(content){
+            content.innerHTML =
+              renderOriginalDaySlotsHtml(
+                dateText,
+                result.slots || []
+              );
+            setupOriginalMonthViewEvents();
+          }
+          renderSlots(result.slots || []);
+        })
+        .catch(function(error){
+          if(content){
+            content.innerHTML =
+              '<div class="status error" style="display:block;">' +
+              t("apiFail") +
+              '</div>';
+          }
+        });
+    }
+
+    function renderOriginalDaySlotsHtml(dateText,slots){
+      var html = "";
+
+      (slots || []).forEach(function(slot){
+        if(slot.available){
+          html +=
+            '<div role="button" tabindex="0" class="slot slotAvailable bookableSlot" data-date="' +
+            dateText +
+            '" data-period="' +
+            slot.period +
+            '" data-label="' +
+            dateText +
+            " " +
+            slot.period +
+            "(" +
+            slot.startTime +
+            "-" +
+            slot.endTime +
+            ')">' +
+            '<span class="slotMain"><span class="slotName">\u53ef\u9810\u7d04</span>' +
+            '<span class="slotTime">' +
+            slot.period +
+            "(" +
+            slot.startTime +
+            "-" +
+            slot.endTime +
+            ')</span></span><span class="slotAction">\u9810\u7d04</span></div>';
+        }else{
+          html +=
+            '<div class="slot slotFull"><span class="slotMain"><span class="slotName">\u5df2\u6eff</span>' +
+            '<span class="slotTime">' +
+            slot.period +
+            "(" +
+            slot.startTime +
+            "-" +
+            slot.endTime +
+            ')</span></span><span class="slotAction">\u4e0d\u53ef\u9810\u7d04</span></div>';
+        }
+      });
+
+      if(html == ""){
+        html =
+          '<div class="emptyDay">\u6b64\u65e5\u6c92\u6709\u53ef\u9810\u7d04\u6642\u6bb5</div>';
+      }
+
+      return html;
+    }
+
+    function bindCalendarGridEvents(){
+      var grid =
+        document.getElementById("calendarGrid");
+
+      if(!grid || grid.getAttribute("data-bound") == "1"){
+        return;
+      }
+
+      grid.setAttribute("data-bound","1");
+      grid.addEventListener("click",function(event){
+        var mini =
+          event.target.closest(".calendarMiniSlot.free");
+
+        if(mini){
+          selectCalendarMiniSlot(
+            event,
+            mini.getAttribute("data-date"),
+            mini.getAttribute("data-period")
+          );
+          return;
+        }
+
+        var day =
+          event.target.closest(".calendarDay");
+
+        if(
+          day &&
+          !day.classList.contains("disabled") &&
+          day.getAttribute("data-date")
+        ){
+          selectCalendarDate(
+            day.getAttribute("data-date")
+          );
+        }
+      });
+    }
+
+    function loadMonthAvailabilityFallback(year,month,cacheKey,calendarContainer,selectedDate){
+      document.getElementById("calendarOriginalView").style.display = "none";
+      document.getElementById("calendarModernView").style.display = "block";
+      jsonpRequest({
+        api:"getMonthAvailabilityJsonp",
+        year:year,
+        month:month
+      })
+        .then(function(result){
+          if(calendarContainer){
+            calendarContainer.style.opacity = "1";
+            calendarContainer.style.pointerEvents = "auto";
+          }
+
+          if(result.status != "OK"){
+            monthAvailability = {};
+            isMonthLoading = false;
+            renderCalendar();
+            return;
+          }
+
+          monthAvailability = result.days || {};
+          calendarCache[cacheKey] = {
+            days:monthAvailability,
+            htmlData:""
+          };
+          isMonthLoading = false;
+          renderCalendar();
+          highlightCalendarDate(selectedDate);
+
+          if(
+            selectedDate &&
+            monthAvailability[selectedDate]
+          ){
+            renderSlots(monthAvailability[selectedDate].slots || []);
+          }
+        })
+        .catch(function(error){
+          if(calendarContainer){
+            calendarContainer.style.opacity = "1";
+            calendarContainer.style.pointerEvents = "auto";
+          }
+          monthAvailability = {};
+          isMonthLoading = false;
+          renderCalendar();
+        });
+    }
+
+    function formatDateLocal(date){
+      var y = date.getFullYear();
+      var m = String(date.getMonth() + 1);
+      var d = String(date.getDate());
+
+      if(m.length < 2){ m = "0" + m; }
+      if(d.length < 2){ d = "0" + d; }
+
+      return y + "-" + m + "-" + d;
+    }
+
+    function clearSelectedSlots(){
+      Array.prototype.forEach.call(document.querySelectorAll(".slotBtn"),function(item){
+        item.classList.remove("selected");
+      });
+    }
+
+    function loadAvailability(){
+      var date = document.getElementById("b_date").value;
+      var list = document.getElementById("slotList");
+      selectedSlotKey = "";
+      clearSelectedSlots();
+      if(!date){
+        list.innerHTML = "";
+        return;
+      }
+      if(!isFullDateText(date)){
+        list.innerHTML = '<div class="status error" style="display:block;">' +
+          "\u8acb\u9078\u64c7\u5b8c\u6574\u65e5\u671f" +
+          '</div>';
+        return;
+      }
+      list.innerHTML = '<div class="status" style="display:block;">' + t("loadingSlots") + '</div>';
+      jsonpRequest({ api:"getAvailabilityJsonp", date:date })
+        .then(function(result){
+          if(result.status != "OK"){
+            list.innerHTML = '<div class="status error" style="display:block;">' + (result.message || t("slotFail")) + '</div>';
+            return;
+          }
+          renderSlots(result.slots || []);
+        })
+        .catch(function(error){
+          list.innerHTML = '<div class="status error" style="display:block;">' +
+            t("apiFail") +
+            '</div>';
+        });
+    }
+
+    function renderSlots(slots){
+      var list = document.getElementById("slotList");
+      list.innerHTML = "";
+      slots.forEach(function(slot){
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "slotBtn" + (slot.available ? "" : " full");
+        btn.textContent = (slot.available ? t("available") : t("full")) + slot.period + " " + slot.startTime + "-" + slot.endTime;
+        if(slot.available){
+          btn.onclick = function(){ selectSlot(slot,btn); };
+        }
+        list.appendChild(btn);
+      });
+    }
+
+    function selectSlot(slot,button){
+      Array.prototype.forEach.call(document.querySelectorAll(".slotBtn"),function(item){
+        item.classList.remove("selected");
+      });
+      button.classList.add("selected");
+      document.getElementById("b_period").value = periodKeyFromText(slot.period);
+      syncDefaultTime();
+      document.getElementById("b_startTime").value = slot.startTime;
+      syncEndTimeOptions(slot.endTime);
+      selectedSlotKey =
+        document.getElementById("b_date").value + "|" +
+        document.getElementById("b_period").value + "|" +
+        document.getElementById("b_startTime").value + "|" +
+        document.getElementById("b_endTime").value;
+    }
+
+    function periodKeyFromText(period){
+      if(period == "\u4e0a\u5348" || period == "morning"){ return "morning"; }
+      if(period == "\u4e0b\u5348" || period == "afternoon"){ return "afternoon"; }
+      if(period == "\u665a\u4e0a" || period == "evening"){ return "evening"; }
+      return "morning";
+    }
+
+    function submitBookingApi(data){
+      return jsonpRequest({
+        api:"createCustomerBookingJsonp",
+        payload:JSON.stringify(data)
+      });
+    }
+
+    function submitBooking(){
+      var data = getFormData();
+      var error = validateForm(data);
+      if(error){
+        Swal.fire(t("missingTitle"), error, "warning");
+        return;
+      }
+      setLoading(true);
+      showStatus(t("submittingStatus"), false);
+      submitBookingApi(data)
+        .then(function(result){
+          if(result.status == "BOOKED"){
+            setLoading(false);
+            Swal.fire(t("bookedTitle"), result.message || t("bookedFallback"), "error");
+            return;
+          }
+          if(result.status != "OK"){
+            setLoading(false);
+            Swal.fire(t("failedTitle"), result.message || t("failedFallback"), "error");
+            return;
+          }
+          Swal.fire({
+            title:t("successTitle"),
+            text:t("successText"),
+            icon:"success",
+            showConfirmButton:false,
+            timer:1200
+          });
+          sendLineDetail(data)
+            .then(function(){
+              setLoading(false);
+              if(liffReady && liff.isInClient()){
+                setTimeout(function(){ liff.closeWindow(); },600);
+              }else{
+                showStatus(t("notLine"), false);
+              }
+            })
+            .catch(function(error){
+              setLoading(false);
+              alert(t("lineFail") + JSON.stringify(error));
+            });
+        })
+        .catch(function(error){
+          setLoading(false);
+          Swal.fire(t("connectionFail"), t("apiFail"), "error");
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded",function(){
+      syncDefaultTime();
+      bindCalendarGridEvents();
+      calendarViewDate =
+        new Date(
+          new Date().getFullYear(),
+          new Date().getMonth(),
+          1
+        );
+      renderCalendar();
+      loadMonthAvailability();
+      initLiff();
+    });
+  </script>
+</body>
+</html>
