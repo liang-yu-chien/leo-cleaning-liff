@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
@@ -792,6 +792,65 @@
     .btn:active{ transform:scale(0.98); }
     .btn:disabled{ opacity:.58; cursor:default; }
     .hint{ margin-top:12px; color:var(--muted); font-size:12px; line-height:1.5; text-align:center; }
+
+    /* 原版 GAS 前台月曆：隔離新版小月曆的全域樣式，避免日期格和早中晚標籤被擠在一起 */
+    #calendarOriginalView,
+    #calendarOriginalView *{
+      box-sizing:border-box;
+    }
+    #calendarOriginalView .calendarCard{
+      width:100%;
+      margin:0;
+    }
+    #calendarOriginalView .monthCalendar{
+      width:100%;
+      display:grid !important;
+      grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+      gap:5px !important;
+      align-items:stretch;
+    }
+    #calendarOriginalView .weekCell{
+      min-width:0;
+      line-height:1.15;
+    }
+    #calendarOriginalView .calendarDay{
+      display:block !important;
+      min-width:0;
+      min-height:82px;
+      text-align:left;
+      align-items:initial !important;
+      justify-content:initial !important;
+      gap:0 !important;
+      line-height:1.2;
+    }
+    #calendarOriginalView .calendarDate{
+      display:block;
+      line-height:1;
+    }
+    #calendarOriginalView .calendarSlots{
+      width:100%;
+      display:grid !important;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:3px;
+    }
+    #calendarOriginalView .calendarMiniSlot{
+      width:auto !important;
+      min-width:0;
+      height:22px;
+      min-height:0;
+      padding:0 2px;
+      line-height:22px;
+      white-space:nowrap;
+      cursor:default;
+    }
+    #calendarOriginalView .dayStatusBadge{
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    #calendarOriginalView .dayDetail .slot{
+      width:100%;
+    }
     @media (max-width:380px){
       body{ padding-left:10px; padding-right:10px; }
       .hero{ padding:14px; }
