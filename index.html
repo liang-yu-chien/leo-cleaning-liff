@@ -864,6 +864,130 @@
       .calendarDateNum{ font-size:13px; }
       .calendarDateMeta{ font-size:9px; }
     }
+
+    /* 最終覆蓋：原版月曆在獨立 LIFF 頁面中使用較窄容器，需拉寬並壓縮格內文字 */
+    #calendarOriginalView{
+      width:100%;
+      max-width:100%;
+      overflow:visible;
+    }
+    #calendarOriginalView .calendarCard{
+      padding:10px !important;
+      border-radius:18px !important;
+    }
+    #calendarOriginalView .monthHeader{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:space-between !important;
+      gap:8px !important;
+      flex-wrap:wrap !important;
+    }
+    #calendarOriginalView .monthTitle{
+      min-width:0 !important;
+      white-space:nowrap !important;
+    }
+    #calendarOriginalView .monthNav{
+      display:flex !important;
+      gap:6px !important;
+      flex-wrap:nowrap !important;
+    }
+    #calendarOriginalView .monthNavBtn{
+      min-width:48px !important;
+      padding:8px 9px !important;
+      white-space:nowrap !important;
+      text-align:center !important;
+    }
+    #calendarOriginalView .calendarLegend{
+      grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+      gap:5px !important;
+    }
+    #calendarOriginalView .legendItem{
+      min-width:0 !important;
+      padding:0 4px !important;
+      font-size:10px !important;
+      white-space:nowrap !important;
+    }
+    #calendarOriginalView .monthCalendar{
+      grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+      gap:3px !important;
+    }
+    #calendarOriginalView .weekCell{
+      padding:4px 0 !important;
+      font-size:11px !important;
+      border-radius:8px !important;
+    }
+    #calendarOriginalView .calendarDay{
+      display:block !important;
+      min-height:68px !important;
+      padding:4px 3px !important;
+      border-radius:10px !important;
+      overflow:hidden !important;
+      text-align:left !important;
+    }
+    #calendarOriginalView .calendarDay::before{
+      display:none !important;
+    }
+    #calendarOriginalView .calendarDate{
+      margin:0 0 4px !important;
+      font-size:11px !important;
+      line-height:1 !important;
+    }
+    #calendarOriginalView .dayBadge{
+      top:3px !important;
+      right:3px !important;
+      padding:1px 4px !important;
+      font-size:8px !important;
+    }
+    #calendarOriginalView .calendarSlots{
+      display:grid !important;
+      grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+      gap:2px !important;
+      margin-top:3px !important;
+    }
+    #calendarOriginalView .calendarMiniSlot{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      width:100% !important;
+      height:17px !important;
+      min-height:17px !important;
+      padding:0 !important;
+      border-radius:6px !important;
+      font-size:9px !important;
+      line-height:17px !important;
+    }
+    #calendarOriginalView .dayStatusBadge,
+    #calendarOriginalView .calendarSummary{
+      display:none !important;
+    }
+    #calendarOriginalView .dayDetail{
+      margin-top:10px !important;
+      padding:12px !important;
+      border-radius:16px !important;
+    }
+    @media (max-width:480px){
+      .card:has(#calendarOriginalView){
+        padding-left:10px;
+        padding-right:10px;
+      }
+      .calendarBox{
+        margin-left:-8px;
+        margin-right:-8px;
+        padding:8px;
+        border-radius:18px;
+      }
+      #calendarOriginalView .calendarCard{
+        padding:8px !important;
+      }
+      #calendarOriginalView .calendarDay{
+        min-height:62px !important;
+      }
+      #calendarOriginalView .monthNavBtn{
+        min-width:44px !important;
+        padding:7px 8px !important;
+        font-size:11px !important;
+      }
+    }
   </style>
 </head>
 <body>
