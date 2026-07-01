@@ -1416,18 +1416,98 @@
       if(!liffReady || !liff.isInClient()){
         return Promise.resolve();
       }
-      var br = String.fromCharCode(10);
-      var text =
-        "\u2705 \u9810\u7d04\u6210\u529f\u901a\u77e5" + br +
-        "--------------------" + br +
-        "\u59d3\u540d\uff1a" + data.name + br +
-        "\u65e5\u671f\uff1a" + data.date + br +
-        "\u6642\u9593\uff1a" + data.startTime + "-" + data.endTime + br +
-        "\u670d\u52d9\uff1a" + data.service + br +
-        "\u5730\u5740\uff1a" + data.address + br +
-        "--------------------" + br +
-        "\u7ba1\u7406\u54e1\u5df2\u540c\u6b65\u6536\u5230\u901a\u77e5\uff0c\u5f8c\u7e8c\u6703\u518d\u8207\u60a8\u78ba\u8a8d\u3002";
-      return liff.sendMessages([{ type:"text", text:text }]);
+      var timeText =
+        (data.startTime || "") +
+        (
+          data.startTime || data.endTime ?
+          "-" :
+          ""
+        ) +
+        (data.endTime || "");
+
+      return liff.sendMessages([{
+        type:"flex",
+        altText:"\u5c45\u5bb6\u6e05\u6f54\u9810\u7d04\u6210\u529f\u660e\u7d30",
+        contents:{
+          type:"bubble",
+          size:"mega",
+          header:{
+            type:"box",
+            layout:"vertical",
+            contents:[
+              {
+                type:"text",
+                text:"\u9810\u7d04\u6210\u529f\u660e\u7d30",
+                weight:"bold",
+                size:"lg",
+                color:"#FFFFFF"
+              },
+              {
+                type:"text",
+                text:"\u7ba1\u7406\u54e1\u5df2\u6536\u5230\u901a\u77e5\uff0c\u5f8c\u7e8c\u6703\u518d\u8207\u60a8\u78ba\u8a8d",
+                size:"xs",
+                color:"#E8F5ED",
+                margin:"xs",
+                wrap:true
+              }
+            ],
+            backgroundGradient:{
+              type:"linear",
+              angle:"180deg",
+              startColor:"#2f7d57",
+              endColor:"#1f5f42"
+            }
+          },
+          body:{
+            type:"box",
+            layout:"vertical",
+            spacing:"md",
+            contents:[
+              buildLineFlexRow("\u5ba2\u6236\u59d3\u540d",data.name || ""),
+              buildLineFlexRow("\u9810\u7d04\u65e5\u671f",data.date || ""),
+              buildLineFlexRow("\u670d\u52d9\u6642\u9593",timeText),
+              buildLineFlexRow("\u670d\u52d9\u9805\u76ee",data.service || ""),
+              buildLineFlexRow("\u670d\u52d9\u5730\u5740",data.address || ""),
+              {
+                type:"separator",
+                margin:"lg"
+              },
+              {
+                type:"text",
+                text:"\u6eab\u99a8\u63d0\u9192\uff1a\u670d\u52d9\u524d\u4e00\u65e5\u6703\u518d\u767c\u9001\u8a0a\u606f\u63d0\u9192\u60a8\uff0c\u8b1d\u8b1d\u60a8\u3002",
+                size:"xs",
+                color:"#c24155",
+                wrap:true,
+                margin:"md"
+              }
+            ]
+          }
+        }
+      }]);
+    }
+
+    function buildLineFlexRow(label,value){
+      return {
+        type:"box",
+        layout:"horizontal",
+        contents:[
+          {
+            type:"text",
+            text:label,
+            size:"sm",
+            color:"#6b7b72",
+            flex:2
+          },
+          {
+            type:"text",
+            text:String(value || ""),
+            size:"sm",
+            color:"#17231d",
+            flex:5,
+            wrap:true
+          }
+        ]
+      };
     }
 
     function jsonpRequest(params){
