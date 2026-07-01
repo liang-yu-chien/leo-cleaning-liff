@@ -1208,6 +1208,7 @@
     var monthAvailability = {};
     var calendarCache = {};
     var isMonthLoading = false;
+    var lastPageHiddenAt = 0;
     var PERIOD_RULES = {
       morning:{
         label:"\u4e0a\u5348",
@@ -1762,6 +1763,19 @@
             selectedDate
           );
         });
+    }
+
+    function clearFrontendCalendarCache(){
+      monthAvailability = {};
+      calendarCache = {};
+    }
+
+    function refreshMonthAvailabilityAfterReturn(){
+      if(isMonthLoading){
+        return;
+      }
+      clearFrontendCalendarCache();
+      loadMonthAvailability();
     }
 
     function getCalendarMonthOffset(){
@@ -2323,6 +2337,35 @@
       renderCalendar();
       loadMonthAvailability();
       initLiff();
+    });
+
+    document.addEventListener("visibilitychange",function(){
+      if(document.hidden){
+        lastPageHiddenAt = new Date().getTime();
+        return;
+      }
+
+      if(
+        lastPageHiddenAt &&
+        new Date().getTime() - lastPageHiddenAt > 1000
+      ){
+        refreshMonthAvailabilityAfterReturn();
+      }
+    });
+
+    window.addEventListener("pageshow",function(event){
+      if(event.persisted){
+        refreshMonthAvailabilityAfterReturn();
+      }
+    });
+
+    window.addEventListener("focus",function(){
+      if(
+        lastPageHiddenAt &&
+        new Date().getTime() - lastPageHiddenAt > 1000
+      ){
+        refreshMonthAvailabilityAfterReturn();
+      }
     });
   </script>
 </body>
