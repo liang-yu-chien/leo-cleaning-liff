@@ -1340,12 +1340,15 @@
         return;
       }
 
-      if(type == "success"){
-        navigator.vibrate([24,36,24]);
-        return;
-      }
+      try{
+        if(type == "success"){
+          navigator.vibrate([40,60,40]);
+          return;
+        }
 
-      navigator.vibrate(12);
+        navigator.vibrate(20);
+      }catch(error){
+      }
     }
 
     function showStatus(message,isError){
@@ -2455,6 +2458,7 @@
     }
 
     function submitBooking(){
+      triggerHaptic("light");
       var data = getFormData();
       var error = validateForm(data);
       if(error){
@@ -2506,15 +2510,6 @@
     document.addEventListener("DOMContentLoaded",function(){
       syncDefaultTime();
       bindCalendarGridEvents();
-      document.addEventListener("focusin",function(event){
-        if(
-          event.target &&
-          event.target.matches &&
-          event.target.matches("input,select,textarea")
-        ){
-          triggerHaptic("light");
-        }
-      });
       calendarViewDate =
         new Date(
           new Date().getFullYear(),
