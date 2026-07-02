@@ -24,11 +24,12 @@
       width:100%;
       min-height:100%;
       overflow-x:hidden;
+      overscroll-behavior-y:none;
       -webkit-text-size-adjust:100%;
     }
     body{
       margin:0;
-      padding:14px 14px 38px;
+      padding:14px 14px calc(24px + env(safe-area-inset-bottom));
       background:
         radial-gradient(circle at 15% 0%,rgba(47,125,87,0.12),transparent 28%),
         linear-gradient(180deg,#fbfdfc 0%,var(--bg) 100%);
@@ -36,9 +37,11 @@
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
       -webkit-font-smoothing:antialiased;
       -webkit-touch-callout:none;
+      -webkit-user-select:none;
       user-select:none;
     }
     input,select,textarea{
+      -webkit-user-select:text;
       user-select:text;
     }
     .page{ max-width:520px; margin:0 auto; }
@@ -131,7 +134,7 @@
       padding:12px;
       background:#f8fbf9;
       color:var(--text);
-      font-size:15px;
+      font-size:16px;
       outline:none;
       box-shadow:inset 0 1px 0 rgba(255,255,255,0.8);
     }
@@ -192,9 +195,10 @@
       padding:6px 0 5px;
     }
     .calendarDay{
+      aspect-ratio:1;
       min-height:78px;
       border:1px solid transparent;
-      border-radius:14px;
+      border-radius:16px;
       background:#fff;
       color:var(--text);
       font-weight:900;
@@ -207,6 +211,20 @@
       padding:5px;
       box-shadow:0 5px 14px rgba(31,95,66,0.05);
       transition:transform .1s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .bookingFormPanel{
+      max-height:0;
+      opacity:0;
+      overflow:hidden;
+      transform:translateY(10px);
+      pointer-events:none;
+      transition:max-height .45s cubic-bezier(.4,0,.2,1),opacity .28s ease,transform .28s ease;
+    }
+    .bookingFormPanel.expanded{
+      max-height:1500px;
+      opacity:1;
+      transform:translateY(0);
+      pointer-events:auto;
     }
     .calendarDay.withSlots{
       justify-content:flex-start;
@@ -1209,6 +1227,8 @@
           <div id="calendarGrid" class="calendarGrid"></div>
         </div>
       </div>
+      <div id="slotList" class="slotList"></div>
+      <div id="bookingFormPanel" class="bookingFormPanel">
       <label for="b_name">&#22995;&#21517;</label>
       <input id="b_name" autocomplete="name" placeholder="&#35531;&#36664;&#20837;&#22995;&#21517;">
       <label for="b_phone">&#38651;&#35441;</label>
@@ -1239,7 +1259,6 @@
           <select id="b_endTime"></select>
         </div>
       </div>
-      <div id="slotList" class="slotList"></div>
       <label for="b_service">&#26381;&#21209;&#38917;&#30446;</label>
       <select id="b_service">
         <option value="regular cleaning">&#19968;&#33324;&#28165;&#28500;</option>
@@ -1267,6 +1286,7 @@
       <textarea id="b_note" placeholder="&#21487;&#22635;&#23531;&#29305;&#27530;&#38656;&#27714;&#12289;&#20572;&#36554;&#12289;&#38272;&#31105;&#31561;&#36039;&#35338;"></textarea>
       <button id="submitBtn" class="btn" type="button" onclick="submitBooking()">&#36865;&#20986;&#38928;&#32004;</button>
       <div class="hint">&#35531;&#22312; LINE &#23448;&#26041;&#24115;&#34399;&#20839;&#38283;&#21855;&#27492;&#38913;&#65292;&#25165;&#33021;&#33258;&#21205;&#20659;&#36865;&#38928;&#32004;&#26126;&#32048;&#12290;</div>
+      </div>
     </div>
   </div>
 
@@ -1367,6 +1387,24 @@
         overlay.classList.toggle("active",!!isLoading);
         overlay.setAttribute("aria-hidden",isLoading ? "false" : "true");
       }
+    }
+
+    function expandBookingFormPanel(){
+      var panel = document.getElementById("bookingFormPanel");
+      if(!panel){
+        return;
+      }
+
+      if(!panel.classList.contains("expanded")){
+        panel.classList.add("expanded");
+      }
+
+      setTimeout(function(){
+        panel.scrollIntoView({
+          behavior:"smooth",
+          block:"start"
+        });
+      },120);
     }
 
     function initLiff(){
@@ -1994,6 +2032,7 @@
           document.getElementById("b_period").value + "|" +
           document.getElementById("b_startTime").value + "|" +
           document.getElementById("b_endTime").value;
+        expandBookingFormPanel();
       }
     }
 
@@ -2060,6 +2099,7 @@
         ),
         false
       );
+      expandBookingFormPanel();
     }
 
     function changeMonth(delta){
@@ -2441,6 +2481,7 @@
         document.getElementById("b_period").value + "|" +
         document.getElementById("b_startTime").value + "|" +
         document.getElementById("b_endTime").value;
+      expandBookingFormPanel();
     }
 
     function periodKeyFromText(period){
