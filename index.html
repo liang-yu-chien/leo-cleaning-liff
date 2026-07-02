@@ -119,6 +119,50 @@
       box-shadow:0 8px 20px rgba(31,95,66,0.08);
     }
     .status.error{ background:#fee2e2; color:#991b1b; }
+    .appProgress{
+      position:sticky;
+      top:0;
+      z-index:20;
+      margin:0 0 12px;
+      padding:12px 14px;
+      border:1px solid rgba(220,231,225,0.92);
+      border-radius:18px;
+      background:rgba(255,255,255,0.92);
+      box-shadow:0 10px 24px rgba(31,95,66,0.09);
+      backdrop-filter:blur(12px);
+      -webkit-backdrop-filter:blur(12px);
+    }
+    .appProgressTrack{
+      height:7px;
+      overflow:hidden;
+      border-radius:999px;
+      background:#e3eee7;
+    }
+    .appProgressFill{
+      width:18%;
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#86efac,var(--green));
+      transition:width .28s ease;
+    }
+    .appProgressLabels{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      margin-top:9px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:950;
+      line-height:1.2;
+      text-align:center;
+    }
+    .appProgressStep{
+      flex:1;
+      transition:color .2s ease;
+    }
+    .appProgressStep.active{
+      color:var(--greenDark);
+    }
     label{
       display:block;
       margin:13px 0 7px;
@@ -213,18 +257,14 @@
       transition:transform .1s ease, box-shadow .15s ease, background .15s ease;
     }
     .bookingFormPanel{
-      max-height:0;
-      opacity:0;
-      overflow:hidden;
-      transform:translateY(10px);
-      pointer-events:none;
-      transition:max-height .45s cubic-bezier(.4,0,.2,1),opacity .28s ease,transform .28s ease;
+      max-height:none;
+      opacity:1;
+      overflow:visible;
+      transform:none;
+      pointer-events:auto;
     }
     .bookingFormPanel.expanded{
-      max-height:1500px;
       opacity:1;
-      transform:translateY(0);
-      pointer-events:auto;
     }
     .calendarDay.withSlots{
       justify-content:flex-start;
@@ -1196,6 +1236,16 @@
     </div>
   </div>
   <div class="page">
+    <div class="appProgress" aria-label="預約進度">
+      <div class="appProgressTrack">
+        <div id="bookingProgressFill" class="appProgressFill"></div>
+      </div>
+      <div class="appProgressLabels">
+        <div id="bookingProgressStepDate" class="appProgressStep active">1. 選日期</div>
+        <div id="bookingProgressStepTime" class="appProgressStep">2. 選時段</div>
+        <div id="bookingProgressStepInfo" class="appProgressStep">3. 填資料</div>
+      </div>
+    </div>
     <div class="hero">
       <div class="heroInner">
         <img class="heroLogo" src="logo.png" alt="&#37324;&#27472;&#23621;&#23478;&#28165;&#28500;">
@@ -1390,21 +1440,68 @@
     }
 
     function expandBookingFormPanel(){
-      var panel = document.getElementById("bookingFormPanel");
-      if(!panel){
+      updateBookingProgress();
+    }
+
+    function updateBookingProgress(){
+      var fill = document.getElementById("bookingProgressFill");
+      var stepDate = document.getElementById("bookingProgressStepDate");
+      var stepTime = document.getElementById("bookingProgressStepTime");
+      var stepInfo = document.getElementById("bookingProgressStepInfo");
+      if(!fill || !stepDate || !stepTime || !stepInfo){
         return;
       }
 
-      if(!panel.classList.contains("expanded")){
-        panel.classList.add("expanded");
-      }
+      var date = document.getElementById("b_date").value;
+      var hasTime = selectedSlotKey != "";
+      var requiredIds = [
+        "b_name",
+        "b_phone",
+        "b_address",
+        "b_service",
+        "b_roomType"
+      ];
+      var hasInfo = requiredIds.every(function(id){
+        var el = document.getElementById(id);
+        return el && String(el.value || "").trim() != "";
+      });
 
-      setTimeout(function(){
-        panel.scrollIntoView({
-          behavior:"smooth",
-          block:"start"
-        });
-      },120);
+      stepDate.classList.add("active");
+      stepTime.classList.toggle("active",!!date);
+      stepInfo.classList.toggle("active",hasTime && hasInfo);
+
+      if(hasTime && hasInfo){
+        fill.style.width = "100%";
+      }else if(hasTime){
+        fill.style.width = "72%";
+      }else if(date){
+        fill.style.width = "45%";
+      }else{
+        fill.style.width = "18%";
+      }
+    }
+
+    function bindBookingProgressEvents(){
+      [
+        "b_name",
+        "b_phone",
+        "b_address",
+        "b_service",
+        "b_roomType",
+        "b_pet",
+        "b_note",
+        "b_date",
+        "b_period",
+        "b_startTime",
+        "b_endTime"
+      ].forEach(function(id){
+        var el = document.getElementById(id);
+        if(!el){
+          return;
+        }
+        el.addEventListener("input",updateBookingProgress);
+        el.addEventListener("change",updateBookingProgress);
+      });
     }
 
     function initLiff(){
@@ -1427,6 +1524,7 @@
       setSelectOptions(document.getElementById("b_startTime"),rule.starts);
       document.getElementById("b_startTime").value = rule.defaultStart;
       syncEndTimeOptions(rule.defaultEnd);
+      updateBookingProgress();
     }
 
     function syncEndTimeOptions(preferredEnd){
@@ -1801,6 +1899,7 @@
       }else{
         loadAvailability();
       }
+      updateBookingProgress();
     }
 
     function highlightCalendarDate(dateText){
@@ -2033,6 +2132,7 @@
           document.getElementById("b_startTime").value + "|" +
           document.getElementById("b_endTime").value;
         expandBookingFormPanel();
+        updateBookingProgress();
       }
     }
 
@@ -2100,6 +2200,7 @@
         false
       );
       expandBookingFormPanel();
+      updateBookingProgress();
     }
 
     function changeMonth(delta){
@@ -2482,6 +2583,7 @@
         document.getElementById("b_startTime").value + "|" +
         document.getElementById("b_endTime").value;
       expandBookingFormPanel();
+      updateBookingProgress();
     }
 
     function periodKeyFromText(period){
@@ -2550,6 +2652,7 @@
 
     document.addEventListener("DOMContentLoaded",function(){
       syncDefaultTime();
+      bindBookingProgressEvents();
       bindCalendarGridEvents();
       calendarViewDate =
         new Date(
@@ -2560,6 +2663,7 @@
       renderCalendar();
       loadMonthAvailability();
       initLiff();
+      updateBookingProgress();
     });
 
     document.addEventListener("visibilitychange",function(){
