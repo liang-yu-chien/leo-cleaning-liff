@@ -2127,6 +2127,10 @@
               );
             setupOriginalMonthViewEvents();
           }
+          syncOriginalCalendarDayFromSlots(
+            dateText,
+            result.slots || []
+          );
           renderSlots(result.slots || []);
         })
         .catch(function(error){
@@ -2189,6 +2193,86 @@
       }
 
       return html;
+    }
+
+    function syncOriginalCalendarDayFromSlots(dateText,slots){
+      var day =
+        document.querySelector(
+          '#calendarOriginalView .calendarDay[data-date="' +
+          dateText +
+          '"]'
+        );
+      var freeCount = 0;
+      var bookedCount = 0;
+      var labels = {
+        "\u4e0a\u5348":"\u65e9",
+        "\u4e0b\u5348":"\u5348",
+        "\u665a\u4e0a":"\u665a"
+      };
+      var slotsHtml = "";
+      var badge =
+        day ? day.querySelector(".dayStatusBadge") : null;
+      var summary =
+        day ? day.querySelector(".calendarSummary") : null;
+      var slotWrap =
+        day ? day.querySelector(".calendarSlots") : null;
+      var cacheKey =
+        "original_" + getCalendarMonthOffset();
+
+      if(!day){
+        return;
+      }
+
+      (slots || []).forEach(function(slot){
+        var isFree =
+          slot && slot.available === true;
+        var label =
+          labels[slot.period] ||
+          String(slot.period || "").charAt(0) ||
+          "";
+
+        if(isFree){
+          freeCount++;
+        }else{
+          bookedCount++;
+        }
+
+        slotsHtml +=
+          '<div class="calendarMiniSlot ' +
+          (isFree ? "free" : "booked") +
+          '">' +
+          label +
+          '</div>';
+      });
+
+      day.classList.remove("hasFree","fullBooked","fullClosed");
+      day.classList.add(freeCount > 0 ? "hasFree" : "fullBooked");
+
+      if(slotWrap){
+        slotWrap.innerHTML = slotsHtml;
+      }
+
+      if(badge){
+        badge.className =
+          "dayStatusBadge " +
+          (freeCount > 0 ? "free" : "booked");
+        badge.textContent =
+          freeCount > 0 ? "\u5c1a\u6709\u7a7a\u6a94" : "\u5df2\u6eff";
+      }
+
+      if(summary){
+        summary.textContent =
+          freeCount > 0 ?
+          "\u5269 " + freeCount + " \u500b\u7a7a\u6a94" :
+          "\u4eca\u65e5\u7121\u7a7a\u6a94";
+      }
+
+      if(monthAvailability[dateText]){
+        monthAvailability[dateText].availableCount = freeCount;
+        monthAvailability[dateText].slots = slots || [];
+      }
+
+      delete calendarCache[cacheKey];
     }
 
     function bindCalendarGridEvents(){
