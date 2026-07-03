@@ -355,6 +355,54 @@
     #calendarOriginalView{
       transition:opacity .18s ease;
     }
+    .calendarBox.loading{
+      position:relative;
+      pointer-events:none;
+    }
+    .calendarBox.loading:after{
+      content:"同步最新空檔...";
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      z-index:5;
+      padding:9px 13px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.92);
+      color:#1f5f42;
+      font-size:12px;
+      font-weight:900;
+      box-shadow:0 10px 24px rgba(15,23,42,0.14);
+      border:1px solid rgba(47,125,87,0.14);
+      white-space:nowrap;
+    }
+    .selectedDateHint{
+      display:none;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:-4px 0 12px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:linear-gradient(180deg,#f0fdf4,#ecfeff);
+      border:1px solid rgba(22,163,74,0.18);
+      color:#14532d;
+      font-size:13px;
+      font-weight:900;
+      box-shadow:0 8px 20px rgba(15,23,42,0.05);
+    }
+    .selectedDateHint.isVisible{
+      display:flex;
+    }
+    .selectedDateHint span:last-child{
+      flex:0 0 auto;
+      padding:5px 9px;
+      border-radius:999px;
+      background:#16a34a;
+      color:#fff;
+      font-size:12px;
+      box-shadow:0 6px 14px rgba(22,163,74,0.18);
+    }
     #calendarOriginalView:empty{
       display:none;
     }
@@ -1107,13 +1155,18 @@
       padding:12px !important;
       border-radius:16px !important;
     }
-    @media (max-width:480px){
-      .card:has(#calendarOriginalView){
-        padding-left:10px;
-        padding-right:10px;
-      }
-      .calendarBox{
-        margin-left:-8px;
+      @media (max-width:480px){
+        .card:has(#calendarOriginalView){
+          padding-left:10px;
+          padding-right:10px;
+        }
+        .selectedDateHint{
+          margin-left:-2px;
+          margin-right:-2px;
+          font-size:12px;
+        }
+        .calendarBox{
+          margin-left:-8px;
         margin-right:-8px;
         padding:8px;
         border-radius:18px;
@@ -1270,6 +1323,10 @@
           </div>
           <div id="calendarGrid" class="calendarGrid"></div>
         </div>
+      </div>
+      <div id="selectedDateHint" class="selectedDateHint" aria-live="polite">
+        <span id="selectedDateHintText">請先點選上方可預約日期</span>
+        <span>選時段</span>
       </div>
       <div id="slotList" class="slotList"></div>
       <div id="bookingFormPanel" class="bookingFormPanel">
@@ -1867,6 +1924,39 @@
       }
     }
 
+    function updateSelectedDateHint(dateText){
+      var box = document.getElementById("selectedDateHint");
+      var text = document.getElementById("selectedDateHintText");
+
+      if(!box || !text){
+        return;
+      }
+
+      if(!dateText){
+        box.classList.remove("isVisible");
+        text.textContent = "請先點選上方可預約日期";
+        return;
+      }
+
+      box.classList.add("isVisible");
+      text.textContent = "已選 " + dateText + "，請選擇下方時段";
+    }
+
+    function scrollToOriginalDayDetail(){
+      var detail =
+        document.querySelector("#calendarOriginalView .dayDetail") ||
+        document.getElementById("selectedDateHint");
+
+      if(detail && detail.scrollIntoView){
+        setTimeout(function(){
+          detail.scrollIntoView({
+            behavior:"smooth",
+            block:"start"
+          });
+        },120);
+      }
+    }
+
     function updateCalendarTitle(){
       var title = document.getElementById("calendarTitle");
       var year = calendarViewDate.getFullYear();
@@ -1894,6 +1984,7 @@
 
       calendarViewDate = target;
       monthAvailability = {};
+      updateSelectedDateHint("");
       renderCalendar();
       loadMonthAvailability();
     }
@@ -1903,6 +1994,7 @@
       document.getElementById("b_date").value = dateText;
       selectedSlotKey = "";
       clearSelectedSlots();
+      updateSelectedDateHint(dateText);
       highlightCalendarDate(dateText);
       if(monthAvailability[dateText]){
         renderSlots(monthAvailability[dateText].slots || []);
@@ -1936,6 +2028,8 @@
         document.getElementById("calendarOriginalView");
       var modernView =
         document.getElementById("calendarModernView");
+      var calendarBox =
+        document.querySelector(".calendarBox");
       var selectedDate =
         document.getElementById("b_date").value;
 
@@ -1954,6 +2048,9 @@
       delete calendarCache[cacheKey];
 
       isMonthLoading = true;
+      if(calendarBox){
+        calendarBox.classList.add("loading");
+      }
       if(modernView.style.display != "none"){
         renderCalendar();
       }
@@ -1971,6 +2068,9 @@
           if(calendarContainer){
             calendarContainer.style.opacity = "1";
             calendarContainer.style.pointerEvents = "auto";
+          }
+          if(calendarBox){
+            calendarBox.classList.remove("loading");
           }
 
           if(result.status != "OK" || !result.htmlData){
@@ -1999,6 +2099,9 @@
           if(calendarContainer){
             calendarContainer.style.opacity = "1";
             calendarContainer.style.pointerEvents = "auto";
+          }
+          if(calendarBox){
+            calendarBox.classList.remove("loading");
           }
           loadMonthAvailabilityFallback(
             year,
@@ -2179,6 +2282,7 @@
         slot.getAttribute("data-end-time") || "";
 
       document.getElementById("b_date").value = dateText;
+      updateSelectedDateHint(dateText);
       document.getElementById("b_period").value =
         periodKeyFromText(periodText);
       syncDefaultTime();
@@ -2235,6 +2339,7 @@
     function showCustomerDaySlots(dateText){
       document.getElementById("b_date").value = dateText;
       selectedSlotKey = "";
+      updateSelectedDateHint(dateText);
       loadOriginalDaySlots(dateText);
     }
 
@@ -2291,6 +2396,7 @@
             result.slots || []
           );
           renderSlots(result.slots || []);
+          scrollToOriginalDayDetail();
         })
         .catch(function(error){
           if(content){
@@ -2542,8 +2648,10 @@
       var list = document.getElementById("slotList");
       selectedSlotKey = "";
       clearSelectedSlots();
+      updateSelectedDateHint(date);
       if(!date){
         list.innerHTML = "";
+        updateSelectedDateHint("");
         return;
       }
       if(!isFullDateText(date)){
