@@ -44,6 +44,16 @@
       -webkit-user-select:text;
       user-select:text;
     }
+    .calendarNav,
+    .calendarDay,
+    .calendarMiniSlot,
+    .slotBtn,
+    #calendarOriginalView .calendarDay,
+    #calendarOriginalView .bookableSlot,
+    #calendarOriginalView .monthNavBtn,
+    #calendarOriginalView .dayDetail .slot{
+      touch-action:manipulation;
+    }
     .page{ max-width:520px; margin:0 auto; }
     .hero{
       position:relative;
@@ -134,7 +144,7 @@
       background:#e3eee7;
     }
     .appProgressFill{
-      width:18%;
+      width:20%;
       height:100%;
       border-radius:999px;
       background:linear-gradient(90deg,#86efac,var(--green));
@@ -911,6 +921,18 @@
     .btn:active{ transform:scale(0.96); filter:brightness(0.95); }
     .btn:disabled{ opacity:.58; cursor:default; }
     .hint{ margin-top:12px; color:var(--muted); font-size:12px; line-height:1.5; text-align:center; }
+    .addressServiceHint{
+      margin-top:7px;
+      padding:9px 10px;
+      border-radius:14px;
+      background:#fff7ed;
+      color:#9a3412;
+      border:1px solid rgba(215,164,70,0.28);
+      font-size:12px;
+      font-weight:900;
+      line-height:1.45;
+      text-align:left;
+    }
 
     .calendarNav:active,
     .slotBtn:not(.full):active,
@@ -1407,9 +1429,10 @@
       <label for="b_name">&#22995;&#21517;</label>
       <input id="b_name" autocomplete="name" placeholder="&#35531;&#36664;&#20837;&#22995;&#21517;">
       <label for="b_phone">&#38651;&#35441;</label>
-      <input id="b_phone" inputmode="tel" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
+      <input id="b_phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
       <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
       <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
+      <div class="addressServiceHint">小提示：目前主要服務新竹竹北市，以及桃園市（不含復興、蘆竹、觀音、龜山區）。</div>
       <div class="grid2">
         <div class="dateInputBox">
           <label for="b_date">&#26085;&#26399;</label>
@@ -1589,23 +1612,34 @@
         "b_service",
         "b_roomType"
       ];
-      var hasInfo = requiredIds.every(function(id){
+      var filledCount = requiredIds.reduce(function(count,id){
         var el = document.getElementById(id);
-        return el && String(el.value || "").trim() != "";
-      });
+        return count + (el && String(el.value || "").trim() != "" ? 1 : 0);
+      },0);
+      var progress =
+        date ? 40 : 20;
+
+      if(hasTime){
+        progress = 60 + filledCount * 8;
+      }
 
       stepDate.classList.add("active");
-      stepTime.classList.toggle("active",hasTime);
-      stepInfo.classList.toggle("active",hasTime && hasInfo);
+      stepTime.classList.toggle("active",date != "");
+      stepInfo.classList.toggle("active",hasTime);
+      fill.style.width =
+        Math.min(100,progress) + "%";
+    }
 
-      if(hasTime && hasInfo){
-        fill.style.width = "100%";
-      }else if(hasTime){
-        fill.style.width = "72%";
-      }else if(date){
-        fill.style.width = "45%";
-      }else{
-        fill.style.width = "18%";
+    function normalizePhoneInput(){
+      var phone = document.getElementById("b_phone");
+      if(!phone){
+        return;
+      }
+
+      var cleanValue =
+        String(phone.value || "").replace(/[^0-9]/g,"");
+      if(phone.value != cleanValue){
+        phone.value = cleanValue;
       }
     }
 
@@ -1630,6 +1664,15 @@
         el.addEventListener("input",updateBookingProgress);
         el.addEventListener("change",updateBookingProgress);
       });
+
+      var phone =
+        document.getElementById("b_phone");
+      if(phone){
+        phone.addEventListener("input",function(){
+          normalizePhoneInput();
+          updateBookingProgress();
+        });
+      }
     }
 
     function initLiff(){
@@ -2068,6 +2111,29 @@
       title.textContent = year + "\u5e74" + (month + 1) + "\u6708";
     }
 
+    function resetSelectedDateAndSlot(){
+      selectedSlotKey = "";
+      document.getElementById("b_date").value = "";
+      document.getElementById("b_startTime").value = "";
+      document.getElementById("b_endTime").value = "";
+      var slotList =
+        document.getElementById("slotList");
+      if(slotList){
+        slotList.innerHTML = "";
+      }
+      clearSelectedSlots();
+      updateSelectedDateHint("");
+      Array.prototype.forEach.call(
+        document.querySelectorAll(
+          ".calendarDay.selected,#calendarOriginalView .calendarDay.selected,#calendarOriginalView .bookableSlot.selected"
+        ),
+        function(item){
+          item.classList.remove("selected");
+        }
+      );
+      updateBookingProgress();
+    }
+
     function moveCalendarMonth(offset){
       triggerHaptic("light");
       var today = new Date();
@@ -2088,7 +2154,7 @@
 
       calendarViewDate = target;
       monthAvailability = {};
-      updateSelectedDateHint("");
+      resetSelectedDateAndSlot();
       renderCalendar();
       loadMonthAvailability();
     }
@@ -2449,6 +2515,7 @@
           new Date().getMonth(),
           1
         );
+      resetSelectedDateAndSlot();
       loadMonthAvailability();
     }
 
