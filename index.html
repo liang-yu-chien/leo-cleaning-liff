@@ -1091,6 +1091,51 @@
       overflow:hidden !important;
       text-align:center !important;
     }
+    #calendarOriginalView .calendarDay.selected{
+      border:2px solid #064e3b !important;
+      background:linear-gradient(180deg,#0f766e,#166534) !important;
+      color:#fff !important;
+      box-shadow:
+        0 0 0 3px rgba(22,163,74,0.22),
+        0 12px 28px rgba(6,78,59,0.28) !important;
+      transform:translateY(-1px);
+    }
+    #calendarOriginalView .calendarDay.selected:after{
+      content:"已選";
+      position:absolute;
+      left:50%;
+      bottom:3px;
+      transform:translateX(-50%);
+      padding:2px 6px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.92);
+      color:#065f46;
+      font-size:9px;
+      font-weight:950;
+      line-height:1;
+      box-shadow:0 4px 10px rgba(6,78,59,0.18);
+      pointer-events:none;
+    }
+    #calendarOriginalView .calendarDay.selected .calendarDate,
+    #calendarOriginalView .calendarDay.selected .calendarSummary,
+    #calendarOriginalView .calendarDay.selected .dayStatusBadge{
+      color:#fff !important;
+    }
+    #calendarOriginalView .calendarDay.selected .dayStatusBadge{
+      background:rgba(255,255,255,0.22) !important;
+      border:1px solid rgba(255,255,255,0.38) !important;
+    }
+    #calendarOriginalView .calendarDay.selected .calendarMiniSlot.free{
+      background:#bbf7d0 !important;
+      color:#14532d !important;
+      box-shadow:0 0 0 1px rgba(255,255,255,0.55) inset !important;
+    }
+    #calendarOriginalView .calendarDay.selected .calendarMiniSlot.booked,
+    #calendarOriginalView .calendarDay.selected .calendarMiniSlot.closed{
+      background:rgba(255,255,255,0.28) !important;
+      color:#fff !important;
+      box-shadow:0 0 0 1px rgba(255,255,255,0.28) inset !important;
+    }
     #calendarOriginalView .calendarDay::before{
       display:none !important;
     }
@@ -1924,7 +1969,7 @@
       }
     }
 
-    function updateSelectedDateHint(dateText){
+    function updateSelectedDateHint(dateText,slotText){
       var box = document.getElementById("selectedDateHint");
       var text = document.getElementById("selectedDateHintText");
 
@@ -1939,7 +1984,36 @@
       }
 
       box.classList.add("isVisible");
-      text.textContent = "已選 " + dateText + "，請選擇下方時段";
+      if(slotText){
+        text.textContent = "已選 " + dateText + " " + slotText + "，請填寫聯絡資料";
+      }else{
+        text.textContent = "已選 " + dateText + "，請選擇下方時段";
+      }
+    }
+
+    function focusNameFieldAfterSlot(){
+      var nameInput =
+        document.getElementById("b_name");
+
+      if(!nameInput){
+        return;
+      }
+
+      setTimeout(function(){
+        nameInput.scrollIntoView({
+          behavior:"smooth",
+          block:"center"
+        });
+        setTimeout(function(){
+          try{
+            nameInput.focus({
+              preventScroll:true
+            });
+          }catch(error){
+            nameInput.focus();
+          }
+        },260);
+      },160);
     }
 
     function scrollToOriginalDayDetail(){
@@ -2218,6 +2292,7 @@
 
       document.getElementById("b_date").value = dateText;
       selectedSlotKey = "";
+      updateSelectedDateHint(dateText);
       highlightCalendarDate(dateText);
 
       if(monthAvailability[dateText]){
@@ -2249,8 +2324,13 @@
           document.getElementById("b_period").value + "|" +
           document.getElementById("b_startTime").value + "|" +
           document.getElementById("b_endTime").value;
+        updateSelectedDateHint(
+          dateText,
+          matched.period + " " + matched.startTime + "-" + matched.endTime
+        );
         expandBookingFormPanel();
         updateBookingProgress();
+        focusNameFieldAfterSlot();
       }
     }
 
@@ -2280,9 +2360,16 @@
         slot.getAttribute("data-start-time") || "";
       var endTime =
         slot.getAttribute("data-end-time") || "";
+      var slotText =
+        periodText +
+        (
+          startTime && endTime ?
+          " " + startTime + "-" + endTime :
+          ""
+        );
 
       document.getElementById("b_date").value = dateText;
-      updateSelectedDateHint(dateText);
+      updateSelectedDateHint(dateText,slotText);
       document.getElementById("b_period").value =
         periodKeyFromText(periodText);
       syncDefaultTime();
@@ -2310,16 +2397,12 @@
         "\u5df2\u9078\u64c7\uff1a" +
         dateText +
         " " +
-        periodText +
-        (
-          startTime && endTime ?
-          " " + startTime + "-" + endTime :
-          ""
-        ),
+        slotText,
         false
       );
       expandBookingFormPanel();
       updateBookingProgress();
+      focusNameFieldAfterSlot();
     }
 
     function changeMonth(delta){
@@ -2706,8 +2789,13 @@
         document.getElementById("b_period").value + "|" +
         document.getElementById("b_startTime").value + "|" +
         document.getElementById("b_endTime").value;
+      updateSelectedDateHint(
+        document.getElementById("b_date").value,
+        slot.period + " " + slot.startTime + "-" + slot.endTime
+      );
       expandBookingFormPanel();
       updateBookingProgress();
+      focusNameFieldAfterSlot();
     }
 
     function periodKeyFromText(period){
