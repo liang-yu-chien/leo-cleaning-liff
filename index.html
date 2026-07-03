@@ -1085,10 +1085,10 @@
     }
     #calendarOriginalView .calendarDay{
       display:block !important;
-      min-height:86px !important;
-      padding:4px 3px !important;
+      min-height:94px !important;
+      padding:5px 4px !important;
       border-radius:10px !important;
-      overflow:hidden !important;
+      overflow:visible !important;
       text-align:center !important;
     }
     #calendarOriginalView .calendarDay.selected{
@@ -1100,14 +1100,44 @@
         0 10px 22px rgba(22,163,74,0.16) !important;
       transform:translateY(-1px);
     }
+    #calendarOriginalView .calendarDay.hasFree.selected{
+      border-color:#16a34a !important;
+      background:linear-gradient(180deg,#bbf7d0,#86efac) !important;
+      color:#14532d !important;
+      box-shadow:
+        0 0 0 3px rgba(22,163,74,0.20),
+        0 10px 22px rgba(22,163,74,0.20) !important;
+    }
+    #calendarOriginalView .calendarDay.fullBooked.selected{
+      border-color:#dc2626 !important;
+      background:linear-gradient(180deg,#fee2e2,#fecaca) !important;
+      color:#7f1d1d !important;
+      box-shadow:
+        0 0 0 3px rgba(220,38,38,0.18),
+        0 10px 22px rgba(220,38,38,0.16) !important;
+    }
+    #calendarOriginalView .calendarDay.fullClosed.selected{
+      border-color:#64748b !important;
+      background:linear-gradient(180deg,#e2e8f0,#cbd5e1) !important;
+      color:#334155 !important;
+      box-shadow:
+        0 0 0 3px rgba(100,116,139,0.16),
+        0 10px 22px rgba(100,116,139,0.14) !important;
+    }
     #calendarOriginalView .calendarDay.selected .calendarDate,
     #calendarOriginalView .calendarDay.selected .calendarSummary,
     #calendarOriginalView .calendarDay.selected .dayStatusBadge{
-      color:#14532d !important;
+      color:inherit !important;
     }
     #calendarOriginalView .calendarDay.selected .dayStatusBadge{
       background:rgba(255,255,255,0.70) !important;
       border:1px solid rgba(22,163,74,0.22) !important;
+    }
+    #calendarOriginalView .calendarDay.fullBooked.selected .dayStatusBadge{
+      border-color:rgba(220,38,38,0.22) !important;
+    }
+    #calendarOriginalView .calendarDay.fullClosed.selected .dayStatusBadge{
+      border-color:rgba(100,116,139,0.22) !important;
     }
     #calendarOriginalView .calendarDay.selected .calendarMiniSlot.free{
       background:#16a34a !important;
@@ -1126,7 +1156,7 @@
     #calendarOriginalView .calendarDate{
       margin:0 0 4px !important;
       font-size:11px !important;
-      line-height:1 !important;
+      line-height:1.1 !important;
       text-align:center !important;
     }
     #calendarOriginalView .dayBadge{
@@ -1139,19 +1169,22 @@
       display:grid !important;
       grid-template-columns:repeat(3,minmax(0,1fr)) !important;
       gap:2px !important;
-      margin-top:3px !important;
+      margin-top:4px !important;
     }
     #calendarOriginalView .calendarMiniSlot{
       display:flex !important;
       align-items:center !important;
       justify-content:center !important;
       width:100% !important;
-      height:17px !important;
-      min-height:17px !important;
-      padding:0 !important;
+      height:18px !important;
+      min-height:18px !important;
+      padding:1px 0 !important;
       border-radius:6px !important;
       font-size:9px !important;
-      line-height:17px !important;
+      line-height:1 !important;
+      white-space:nowrap !important;
+      overflow:hidden !important;
+      text-overflow:clip !important;
     }
     #calendarOriginalView .dayStatusBadge{
       display:block !important;
@@ -1160,10 +1193,10 @@
       margin-top:3px !important;
       padding:2px 3px !important;
       border-radius:6px !important;
-      font-size:7.5px !important;
-      line-height:1.15 !important;
+      font-size:8px !important;
+      line-height:1.2 !important;
       text-align:center !important;
-      white-space:nowrap !important;
+      white-space:normal !important;
       overflow:visible !important;
       text-overflow:clip !important;
     }
@@ -1172,10 +1205,10 @@
       width:100% !important;
       max-width:100% !important;
       margin-top:2px !important;
-      font-size:7.5px !important;
-      line-height:1.15 !important;
+      font-size:8px !important;
+      line-height:1.2 !important;
       text-align:center !important;
-      white-space:nowrap !important;
+      white-space:normal !important;
       overflow:visible !important;
       text-overflow:clip !important;
     }
@@ -1204,7 +1237,7 @@
         padding:8px !important;
       }
       #calendarOriginalView .calendarDay{
-        min-height:82px !important;
+        min-height:92px !important;
       }
       #calendarOriginalView .monthNavBtn{
         min-width:44px !important;
