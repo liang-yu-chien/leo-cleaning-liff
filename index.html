@@ -1100,22 +1100,6 @@
         0 12px 28px rgba(6,78,59,0.28) !important;
       transform:translateY(-1px);
     }
-    #calendarOriginalView .calendarDay.selected:after{
-      content:"已選";
-      position:absolute;
-      left:50%;
-      bottom:3px;
-      transform:translateX(-50%);
-      padding:2px 6px;
-      border-radius:999px;
-      background:rgba(255,255,255,0.92);
-      color:#065f46;
-      font-size:9px;
-      font-weight:950;
-      line-height:1;
-      box-shadow:0 4px 10px rgba(6,78,59,0.18);
-      pointer-events:none;
-    }
     #calendarOriginalView .calendarDay.selected .calendarDate,
     #calendarOriginalView .calendarDay.selected .calendarSummary,
     #calendarOriginalView .calendarDay.selected .dayStatusBadge{
@@ -2084,7 +2068,10 @@
       });
 
       var selected =
-        document.querySelector('.calendarDay[data-date="' + dateText + '"]');
+        document.querySelector(
+          '.calendarDay[data-date="' + dateText + '"],' +
+          '#calendarOriginalView .calendarDay[data-date="' + dateText + '"]'
+        );
 
       if(selected){
         selected.classList.add("selected");
@@ -2423,6 +2410,7 @@
       document.getElementById("b_date").value = dateText;
       selectedSlotKey = "";
       updateSelectedDateHint(dateText);
+      highlightCalendarDate(dateText);
       loadOriginalDaySlots(dateText);
     }
 
