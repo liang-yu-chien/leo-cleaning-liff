@@ -1342,6 +1342,7 @@
     var selectedSlotKey = "";
     var monthAvailability = {};
     var calendarCache = {};
+    var CALENDAR_CACHE_MAX_AGE_MS = 30000;
     var isMonthLoading = false;
     var lastPageHiddenAt = 0;
     var PERIOD_RULES = {
@@ -1938,7 +1939,10 @@
       var selectedDate =
         document.getElementById("b_date").value;
 
-      if(calendarCache[cacheKey]){
+      if(
+        calendarCache[cacheKey] &&
+        Date.now() - Number(calendarCache[cacheKey].cachedAt || 0) < CALENDAR_CACHE_MAX_AGE_MS
+      ){
         calendarContainer.innerHTML =
           calendarCache[cacheKey].htmlData || "";
         calendarContainer.style.display = "block";
@@ -1947,6 +1951,7 @@
         setupOriginalMonthViewEvents();
         return;
       }
+      delete calendarCache[cacheKey];
 
       isMonthLoading = true;
       if(modernView.style.display != "none"){
@@ -1980,7 +1985,8 @@
           }
 
           calendarCache[cacheKey] = {
-            htmlData:result.htmlData || ""
+            htmlData:result.htmlData || "",
+            cachedAt:Date.now()
           };
           isMonthLoading = false;
           calendarContainer.innerHTML =
@@ -2489,7 +2495,8 @@
           monthAvailability = result.days || {};
           calendarCache[cacheKey] = {
             days:monthAvailability,
-            htmlData:""
+            htmlData:"",
+            cachedAt:Date.now()
           };
           isMonthLoading = false;
           renderCalendar();
@@ -2706,6 +2713,8 @@
                 Swal.fire(t("failedTitle"), result.message || t("failedFallback"), "error");
                 return;
               }
+              clearFrontendCalendarCache();
+              loadMonthAvailability();
               Swal.fire({
                 title:t("successTitle"),
                 text:t("successText"),
