@@ -1338,6 +1338,7 @@
     var LIFF_ID = "2010106417-lLCmAcx2";
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbzdX6xdKv9bGb-RWeMWet059muWd_Lm0RjsUDdWGbSNrdid_rozpjpHgK4lYW7OJKPs/exec";
     var liffReady = false;
+    var liffUserId = "";
     var selectedSlotKey = "";
     var monthAvailability = {};
     var calendarCache = {};
@@ -1504,6 +1505,19 @@
           liffReady = true;
           if(!liff.isLoggedIn() && liff.isInClient()){
             liff.login();
+            return;
+          }
+          if(liff.isLoggedIn()){
+            return liff.getProfile()
+              .then(function(profile){
+                liffUserId =
+                  profile && profile.userId ?
+                  profile.userId :
+                  "";
+              })
+              .catch(function(){
+                liffUserId = "";
+              });
           }
         })
         .catch(function(error){
@@ -1595,6 +1609,7 @@
         service:getServiceText(service),
         roomType:getRoomTypeText(document.getElementById("b_roomType").value),
         pet:getPetText(document.getElementById("b_pet").value),
+        lineUserId:liffUserId,
         note:document.getElementById("b_note").value.trim()
       };
     }
