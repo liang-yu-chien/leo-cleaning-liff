@@ -1427,7 +1427,7 @@
       <input id="b_phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
       <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
       <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
-      <div class="addressServiceHint">小提示：目前主要服務新竹竹北市，以及桃園市（不含復興、蘆竹、觀音、龜山區）。如有超出範圍地區，請先詢問。</div>
+      <div class="addressServiceHint">小提示：目前主要服務新竹竹北市，以及桃園市（不含復興、蘆竹、觀音、龜山區）。如有超出範圍地區，請先詢問。地址範例：桃園市桃園區中正路100號5樓，請務必填寫縣市、行政區與路名門牌。</div>
       <div class="grid2">
         <div class="dateInputBox">
           <label for="b_date">&#26085;&#26399;</label>
@@ -1489,11 +1489,13 @@
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbzdX6xdKv9bGb-RWeMWet059muWd_Lm0RjsUDdWGbSNrdid_rozpjpHgK4lYW7OJKPs/exec";
     var liffReady = false;
     var liffUserId = "";
+    var liffDisplayName = "";
     var selectedSlotKey = "";
     var monthAvailability = {};
     var calendarCache = {};
     var CALENDAR_CACHE_MAX_AGE_MS = 30000;
     var isMonthLoading = false;
+    var isSubmittingBooking = false;
     var lastPageHiddenAt = 0;
     var PERIOD_RULES = {
       morning:{
@@ -1577,6 +1579,7 @@
     function setLoading(isLoading){
       var btn = document.getElementById("submitBtn");
       var overlay = document.getElementById("loadingOverlay");
+      isSubmittingBooking = !!isLoading;
       btn.disabled = isLoading;
       btn.textContent = isLoading ? t("submitting") : t("submit");
       if(overlay){
@@ -1685,9 +1688,14 @@
                   profile && profile.userId ?
                   profile.userId :
                   "";
+                liffDisplayName =
+                  profile && profile.displayName ?
+                  profile.displayName :
+                  "";
               })
               .catch(function(){
                 liffUserId = "";
+                liffDisplayName = "";
               });
           }
         })
@@ -1861,7 +1869,7 @@
               },
               {
                 type:"text",
-                text:"\u7ba1\u7406\u54e1\u5df2\u6536\u5230\u901a\u77e5\uff0c\u5f8c\u7e8c\u6703\u518d\u8207\u60a8\u78ba\u8a8d",
+                text:(liffDisplayName ? liffDisplayName + "\u60a8\u597d\uff0c" : "") + "\u7ba1\u7406\u54e1\u5df2\u6536\u5230\u901a\u77e5\uff0c\u5f8c\u7e8c\u6703\u518d\u8207\u60a8\u78ba\u8a8d",
                 size:"xs",
                 color:"#E8F5ED",
                 margin:"xs",
@@ -2977,6 +2985,9 @@
     }
 
     function submitBooking(){
+      if(isSubmittingBooking){
+        return;
+      }
       triggerHaptic("light");
       var data = getFormData();
       var error = validateForm(data);
@@ -2985,9 +2996,11 @@
         return;
       }
 
+      isSubmittingBooking = true;
       showBookingConfirm(data)
         .then(function(confirmResult){
           if(!confirmResult.isConfirmed){
+            isSubmittingBooking = false;
             return;
           }
 
