@@ -928,6 +928,89 @@
       line-height:1.5;
       text-align:left;
     }
+    .formSectionTitle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin:18px 0 10px;
+      color:#1f5f42;
+      font-size:15px;
+      font-weight:950;
+    }
+    .formSectionTitle:first-child{
+      margin-top:2px;
+    }
+    .formSectionTitle:before{
+      content:"";
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(180deg,#86efac,#2f7d57);
+      box-shadow:0 0 0 4px rgba(47,125,87,0.10);
+      flex:0 0 auto;
+    }
+    .selectedBookingBar{
+      display:none;
+      margin:4px 0 14px;
+      padding:11px 12px;
+      border-radius:16px;
+      border:1px solid rgba(47,125,87,0.18);
+      background:linear-gradient(180deg,#ecfdf5,#f7fff9);
+      color:#14532d;
+      font-size:13px;
+      font-weight:950;
+      line-height:1.45;
+      box-shadow:0 8px 20px rgba(31,95,66,0.08);
+    }
+    .selectedBookingBar.isVisible{
+      display:block;
+    }
+    .selectedBookingBar span{
+      color:#6b7b72;
+      font-weight:900;
+    }
+    .confirmSummary{
+      text-align:left;
+      font-size:14px;
+      line-height:1.55;
+    }
+    .confirmHero{
+      margin-bottom:10px;
+      padding:12px;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ecfdf5,#f7fff9);
+      border:1px solid rgba(47,125,87,0.18);
+    }
+    .confirmHeroTitle{
+      color:#14532d;
+      font-size:13px;
+      font-weight:950;
+      margin-bottom:6px;
+    }
+    .confirmHeroValue{
+      color:#17231d;
+      font-size:16px;
+      font-weight:950;
+      word-break:break-word;
+    }
+    .confirmRow{
+      display:flex;
+      gap:10px;
+      padding:8px 0;
+      border-bottom:1px solid #edf3ef;
+      text-align:left;
+    }
+    .confirmLabel{
+      flex:0 0 78px;
+      color:#6b7b72;
+      font-weight:900;
+    }
+    .confirmValue{
+      flex:1;
+      color:#17231d;
+      font-weight:900;
+      word-break:break-word;
+    }
 
     .calendarNav:active,
     .slotBtn:not(.full):active,
@@ -1421,6 +1504,8 @@
       </div>
       <div id="slotList" class="slotList"></div>
       <div id="bookingFormPanel" class="bookingFormPanel">
+      <div id="selectedBookingBar" class="selectedBookingBar"></div>
+      <div class="formSectionTitle">聯絡資料</div>
       <label for="b_name">&#22995;&#21517;</label>
       <input id="b_name" autocomplete="name" placeholder="&#35531;&#36664;&#20837;&#22995;&#21517;">
       <label for="b_phone">&#38651;&#35441;</label>
@@ -1428,6 +1513,7 @@
       <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
       <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
       <div class="addressServiceHint">小提示：目前主要服務新竹竹北市，以及桃園市（不含復興、蘆竹、觀音、龜山區）。如有超出範圍地區，請先詢問。地址範例：桃園市桃園區中正路100號5樓，請務必填寫縣市、行政區與路名門牌。</div>
+      <div class="formSectionTitle">服務時間</div>
       <div class="grid2">
         <div class="dateInputBox">
           <label for="b_date">&#26085;&#26399;</label>
@@ -1453,6 +1539,7 @@
         </div>
       </div>
       <div class="hint">最低服務時數為 3 小時，預設服務時數為 4 小時，請依實際需求選擇開始與結束時間。</div>
+      <div class="formSectionTitle">服務內容</div>
       <label for="b_service">&#26381;&#21209;&#38917;&#30446;</label>
       <select id="b_service">
         <option value="regular cleaning">&#19968;&#33324;&#28165;&#28500;</option>
@@ -2051,6 +2138,7 @@
     function updateSelectedDateHint(dateText,slotText){
       var box = document.getElementById("selectedDateHint");
       var text = document.getElementById("selectedDateHintText");
+      var selectedBar = document.getElementById("selectedBookingBar");
 
       if(!box || !text){
         return;
@@ -2059,14 +2147,28 @@
       if(!dateText){
         box.classList.remove("isVisible");
         text.textContent = "請先點選上方可預約日期";
+        if(selectedBar){
+          selectedBar.classList.remove("isVisible");
+          selectedBar.innerHTML = "";
+        }
         return;
       }
 
       box.classList.add("isVisible");
       if(slotText){
         text.textContent = "已選 " + dateText + " " + slotText + "，請填寫聯絡資料";
+        if(selectedBar){
+          selectedBar.innerHTML =
+            '<span>已選時段</span><br>' +
+            escapeText(dateText + " " + slotText);
+          selectedBar.classList.add("isVisible");
+        }
       }else{
         text.textContent = "已選 " + dateText + "，請選擇下方時段";
+        if(selectedBar){
+          selectedBar.classList.remove("isVisible");
+          selectedBar.innerHTML = "";
+        }
       }
     }
 
@@ -2939,11 +3041,11 @@
     }
 
     function buildConfirmRow(label,value){
-      return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #edf3ef;text-align:left;">' +
-        '<div style="flex:0 0 78px;color:#6b7b72;font-weight:900;">' +
+      return '<div class="confirmRow">' +
+        '<div class="confirmLabel">' +
         escapeText(label) +
         '</div>' +
-        '<div style="flex:1;color:#17231d;font-weight:900;word-break:break-word;">' +
+        '<div class="confirmValue">' +
         escapeText(value || "-") +
         '</div>' +
         '</div>';
@@ -2959,7 +3061,16 @@
         ) +
         (data.endTime || "");
       var html =
-        '<div style="font-size:14px;line-height:1.55;">' +
+        '<div class="confirmSummary">' +
+        '<div class="confirmHero">' +
+        '<div class="confirmHeroTitle">請再次確認服務時間與地址</div>' +
+        '<div class="confirmHeroValue">' +
+        escapeText(data.date + " " + timeText) +
+        '</div>' +
+        '<div class="confirmHeroValue" style="margin-top:6px;font-size:14px;">' +
+        escapeText(data.address || "-") +
+        '</div>' +
+        '</div>' +
         buildConfirmRow("姓名",data.name) +
         buildConfirmRow("電話",data.phone) +
         buildConfirmRow("日期",data.date) +
