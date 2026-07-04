@@ -1525,7 +1525,7 @@
     function t(key){
       var map = {
         submit:"\u9001\u51fa\u9810\u7d04",
-        submitting:"\u9001\u51fa\u4e2d...",
+        submitting:"\u9810\u7d04\u8cc7\u6599\u50b3\u9001\u4e2d...",
         liffFail:"LIFF \u521d\u59cb\u5316\u5931\u6557\uff1a",
         missingTitle:"\u8cc7\u6599\u672a\u5b8c\u6210",
         needName:"\u8acb\u8f38\u5165\u59d3\u540d",
@@ -1930,14 +1930,16 @@
       };
     }
 
-    function jsonpRequest(params){
+    function jsonpRequest(params,options){
+      options =
+        options || {};
       return new Promise(function(resolve,reject){
         var callbackName = "jsonpCallback_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
         var script = document.createElement("script");
         var timer = setTimeout(function(){
           cleanup();
           reject(new Error("API timeout"));
-        },20000);
+        },Number(options.timeoutMs || 20000));
         function cleanup(){
           clearTimeout(timer);
           try{ delete window[callbackName]; }catch(error){ window[callbackName] = undefined; }
@@ -1951,6 +1953,7 @@
           cleanup();
           reject(new Error("\u7cfb\u7d71\u9023\u7dda\u5931\u6557\uff0c\u8acb\u78ba\u8a8d Apps Script \u5df2\u90e8\u7f72\u6700\u65b0\u7248\u672c\u3002"));
         };
+        script.async = true;
         params.callback = callbackName;
         script.src = GAS_API_URL + "?" + Object.keys(params).map(function(key){
           return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
@@ -2913,6 +2916,8 @@
       return jsonpRequest({
         api:"createCustomerBookingJsonp",
         payload:JSON.stringify(data)
+      },{
+        timeoutMs:45000
       });
     }
 
@@ -3044,7 +3049,15 @@
             })
             .catch(function(error){
               setLoading(false);
-              Swal.fire(t("connectionFail"), t("apiFail"), "error");
+              var message =
+                error && error.message == "API timeout" ?
+                "\u7cfb\u7d71\u56de\u61c9\u8f03\u6162\uff0c\u9810\u7d04\u53ef\u80fd\u5df2\u9001\u51fa\u3002\u8acb\u5148\u4e0d\u8981\u91cd\u8907\u9001\u51fa\uff0c\u7a0d\u5019\u67e5\u770b LINE \u6216\u806f\u7d61\u7ba1\u7406\u54e1\u78ba\u8a8d\u3002" :
+                (error && error.message ? error.message : t("apiFail"));
+              Swal.fire(
+                t("connectionFail"),
+                message,
+                "error"
+              );
             });
         });
     }
