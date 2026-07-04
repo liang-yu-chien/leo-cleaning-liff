@@ -928,6 +928,40 @@
       line-height:1.5;
       text-align:left;
     }
+    .addressServiceDetails{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .addressServiceDetails summary{
+      list-style:none;
+      cursor:pointer;
+      color:var(--muted);
+      font-weight:900;
+      user-select:none;
+    }
+    .addressServiceDetails summary::-webkit-details-marker{
+      display:none;
+    }
+    .addressServiceDetails summary:after{
+      content:"查看服務範圍";
+      display:inline-flex;
+      margin-left:8px;
+      padding:2px 8px;
+      border-radius:999px;
+      background:#eef8f2;
+      color:#1f5f42;
+      font-size:11px;
+      font-weight:950;
+      vertical-align:middle;
+    }
+    .addressServiceDetails[open] summary:after{
+      content:"收合";
+    }
+    .addressServiceHint{
+      margin-top:7px;
+    }
     .formSectionTitle{
       display:flex;
       align-items:center;
@@ -968,6 +1002,19 @@
     .selectedBookingBar span{
       color:#6b7b72;
       font-weight:900;
+    }
+    .submitActionArea{
+      margin-top:22px;
+      padding-top:16px;
+      border-top:1px solid rgba(220,231,225,0.78);
+    }
+    .submitActionArea .btn{
+      margin-top:0;
+      min-height:54px;
+      border-radius:20px;
+    }
+    .submitActionArea .hint{
+      margin-top:10px;
     }
     .confirmSummary{
       text-align:left;
@@ -1447,6 +1494,28 @@
       font-size:12px !important;
       box-shadow:0 7px 14px rgba(220,38,38,0.18) !important;
     }
+
+    /* 最終覆蓋：月曆圖例縮小並降低存在感，保留辨識但不搶主視覺 */
+    #calendarOriginalView .calendarLegend{
+      margin:4px 0 8px !important;
+      gap:4px !important;
+      opacity:.72 !important;
+    }
+    #calendarOriginalView .legendItem{
+      min-height:22px !important;
+      padding:0 4px !important;
+      border-color:rgba(220,231,225,0.55) !important;
+      background:rgba(248,252,255,0.48) !important;
+      color:#6b7b72 !important;
+      font-size:10px !important;
+      font-weight:850 !important;
+      box-shadow:none !important;
+    }
+    #calendarOriginalView .legendDot{
+      width:6px !important;
+      height:6px !important;
+      box-shadow:none !important;
+    }
   </style>
 </head>
 <body>
@@ -1512,7 +1581,10 @@
       <input id="b_phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
       <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
       <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
-      <div class="addressServiceHint">小提示：目前主要服務新竹竹北市，以及桃園市（不含復興、蘆竹、觀音、龜山區）。如有超出範圍地區，請先詢問。地址範例：桃園市桃園區中正路100號5樓，請務必填寫縣市、行政區與路名門牌。</div>
+      <details class="addressServiceDetails">
+        <summary>小提示：請填寫完整地址，超出服務範圍請先詢問。</summary>
+        <div class="addressServiceHint">目前主要服務新竹竹北市，以及桃園市（不含復興、蘆竹、觀音、龜山區）。地址範例：桃園市桃園區中正路100號5樓，請務必填寫縣市、行政區與路名門牌。</div>
+      </details>
       <div class="formSectionTitle">服務時間</div>
       <div class="grid2">
         <div class="dateInputBox">
@@ -1565,8 +1637,10 @@
       </select>
       <label for="b_note">&#20633;&#35387;</label>
       <textarea id="b_note" placeholder="&#21487;&#22635;&#23531;&#29305;&#27530;&#38656;&#27714;&#12289;&#20572;&#36554;&#12289;&#38272;&#31105;&#31561;&#36039;&#35338;"></textarea>
-      <button id="submitBtn" class="btn" type="button" onclick="submitBooking()">&#36865;&#20986;&#38928;&#32004;</button>
-      <div class="hint">&#35531;&#22312; LINE &#23448;&#26041;&#24115;&#34399;&#20839;&#38283;&#21855;&#27492;&#38913;&#65292;&#25165;&#33021;&#33258;&#21205;&#20659;&#36865;&#38928;&#32004;&#26126;&#32048;&#12290;</div>
+      <div class="submitActionArea">
+        <button id="submitBtn" class="btn" type="button" onclick="submitBooking()">&#36865;&#20986;&#38928;&#32004;</button>
+        <div class="hint">&#35531;&#22312; LINE &#23448;&#26041;&#24115;&#34399;&#20839;&#38283;&#21855;&#27492;&#38913;&#65292;&#25165;&#33021;&#33258;&#21205;&#20659;&#36865;&#38928;&#32004;&#26126;&#32048;&#12290;</div>
+      </div>
       </div>
     </div>
   </div>
