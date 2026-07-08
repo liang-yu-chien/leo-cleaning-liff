@@ -1530,6 +1530,106 @@
       height:6px !important;
       box-shadow:none !important;
     }
+
+    /* Android LINE WebView compact calendar fix */
+    #calendarOriginalView{
+      -webkit-text-size-adjust:none;
+      text-size-adjust:none;
+    }
+    #calendarOriginalView .monthCalendar{
+      gap:3px !important;
+    }
+    #calendarOriginalView .calendarDay{
+      min-height:64px !important;
+      max-height:74px !important;
+      padding:3px 2px 2px !important;
+      overflow:hidden !important;
+      line-height:1 !important;
+    }
+    #calendarOriginalView .calendarDate{
+      font-size:13px !important;
+      font-weight:950 !important;
+      line-height:1 !important;
+      margin:0 0 2px !important;
+    }
+    #calendarOriginalView .calendarSlots{
+      gap:1px !important;
+      margin:0 !important;
+    }
+    #calendarOriginalView .calendarMiniSlot{
+      height:13px !important;
+      min-height:13px !important;
+      border-radius:999px !important;
+      font-size:8px !important;
+      font-weight:950 !important;
+      line-height:13px !important;
+      padding:0 !important;
+      white-space:nowrap !important;
+      overflow:hidden !important;
+    }
+    #calendarOriginalView .dayStatusBadge,
+    #calendarOriginalView .calendarSummary{
+      height:12px !important;
+      min-height:12px !important;
+      margin:1px 0 0 !important;
+      padding:0 !important;
+      border-radius:999px !important;
+      font-size:8px !important;
+      font-weight:950 !important;
+      line-height:12px !important;
+      white-space:nowrap !important;
+      overflow:hidden !important;
+      text-align:center !important;
+    }
+    #calendarOriginalView .dayDetail .slotFull,
+    #calendarOriginalView .dayDetail .slotAvailable{
+      grid-template-columns:minmax(0,1fr) 74px !important;
+      gap:8px !important;
+      padding:11px 12px !important;
+    }
+    #calendarOriginalView .dayDetail .slotFull .slotAction,
+    #calendarOriginalView .dayDetail .slotAvailable .slotAction{
+      width:74px !important;
+      min-height:34px !important;
+      border-radius:14px !important;
+      padding:5px 8px !important;
+      font-size:12px !important;
+      line-height:1.15 !important;
+      white-space:normal !important;
+      text-align:center !important;
+    }
+    #calendarOriginalView .dayDetail .slotFull .slotName,
+    #calendarOriginalView .dayDetail .slotAvailable .slotName{
+      font-size:15px !important;
+      line-height:1.2 !important;
+    }
+    #calendarOriginalView .dayDetail .slotFull .slotTime,
+    #calendarOriginalView .dayDetail .slotAvailable .slotTime{
+      font-size:12px !important;
+      line-height:1.25 !important;
+      word-break:keep-all !important;
+    }
+    @media (max-width:390px){
+      #calendarOriginalView .calendarCard{
+        padding:7px !important;
+      }
+      #calendarOriginalView .monthCalendar{
+        gap:2px !important;
+      }
+      #calendarOriginalView .calendarDay{
+        min-height:60px !important;
+        max-height:68px !important;
+        border-radius:8px !important;
+      }
+      #calendarOriginalView .calendarDate{
+        font-size:12px !important;
+      }
+      #calendarOriginalView .calendarMiniSlot,
+      #calendarOriginalView .dayStatusBadge,
+      #calendarOriginalView .calendarSummary{
+        font-size:7px !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2408,6 +2508,7 @@
       ){
         calendarContainer.innerHTML =
           calendarCache[cacheKey].htmlData || "";
+        normalizeOriginalCalendarLabels();
         calendarContainer.style.display = "block";
         modernView.style.display = "none";
         isMonthLoading = false;
@@ -2460,6 +2561,7 @@
           isMonthLoading = false;
           calendarContainer.innerHTML =
             result.htmlData || "";
+          normalizeOriginalCalendarLabels();
           calendarContainer.style.display = "block";
           modernView.style.display = "none";
           setupOriginalMonthViewEvents();
@@ -2485,6 +2587,49 @@
     function clearFrontendCalendarCache(){
       monthAvailability = {};
       calendarCache = {};
+    }
+
+    function normalizeOriginalCalendarLabels(){
+      var root =
+        document.getElementById("calendarOriginalView");
+
+      if(!root){
+        return;
+      }
+
+      Array.prototype.forEach.call(
+        root.querySelectorAll(".dayStatusBadge"),
+        function(el){
+          var text =
+            String(el.textContent || "").replace(/\s+/g,"");
+
+          if(text.indexOf("\u5c1a\u6709\u7a7a\u6a94") >= 0){
+            el.textContent = "\u6709\u7a7a";
+          }else if(text.indexOf("\u5df2\u6eff") >= 0){
+            el.textContent = "\u5df2\u6eff";
+          }else if(text.indexOf("\u672a\u958b\u653e") >= 0){
+            el.textContent = "\u672a\u958b";
+          }
+        }
+      );
+
+      Array.prototype.forEach.call(
+        root.querySelectorAll(".calendarSummary"),
+        function(el){
+          var text =
+            String(el.textContent || "").replace(/\s+/g,"");
+          var match =
+            text.match(/\u5269(\d+)\u500b\u7a7a\u6a94/);
+
+          if(match){
+            el.textContent = "\u5269 " + match[1] + " \u683c";
+          }else if(text.indexOf("\u4eca\u65e5\u7121\u7a7a\u6a94") >= 0){
+            el.textContent = "\u7121\u7a7a\u6a94";
+          }else if(text.indexOf("\u7121\u7a7a\u6a94") >= 0){
+            el.textContent = "\u7121\u7a7a\u6a94";
+          }
+        }
+      );
     }
 
     function refreshMonthAvailabilityAfterReturn(){
@@ -2902,14 +3047,14 @@
           "dayStatusBadge " +
           (freeCount > 0 ? "free" : "booked");
         badge.textContent =
-          freeCount > 0 ? "\u5c1a\u6709\u7a7a\u6a94" : "\u5df2\u6eff";
+          freeCount > 0 ? "\u6709\u7a7a" : "\u5df2\u6eff";
       }
 
       if(summary){
         summary.textContent =
           freeCount > 0 ?
-          "\u5269 " + freeCount + " \u500b\u7a7a\u6a94" :
-          "\u4eca\u65e5\u7121\u7a7a\u6a94";
+          "\u5269 " + freeCount + " \u683c" :
+          "\u7121\u7a7a\u6a94";
       }
 
       if(monthAvailability[dateText]){
