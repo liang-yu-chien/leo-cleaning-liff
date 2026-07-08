@@ -367,6 +367,12 @@
     }
     .calendarBox.loading{
       position:relative;
+    }
+    .calendarBox.loading .calendarNav,
+    .calendarBox.loading .calendarDay,
+    .calendarBox.loading .bookableSlot,
+    .calendarBox.loading .monthNavBtn,
+    .calendarBox.loading .dayReloadBtn{
       pointer-events:none;
     }
     .calendarBox.loading:after{
@@ -3417,9 +3423,16 @@
           1
         );
       renderCalendar();
-      loadMonthAvailability();
-      initLiff();
       updateBookingProgress();
+
+      window.requestAnimationFrame(function(){
+        setTimeout(function(){
+          loadMonthAvailability();
+        },80);
+        setTimeout(function(){
+          initLiff();
+        },260);
+      });
     });
 
     document.addEventListener("visibilitychange",function(){
