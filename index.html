@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>&#37324;&#27472;&#23621;&#23478;&#28165;&#28500;&#65372;LINE &#38928;&#32004;</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script async src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root{
       --bg:#f2f7f4;
@@ -1955,7 +1955,33 @@
       }
     }
 
+    function waitForLiffSdk(){
+      return new Promise(function(resolve,reject){
+        var startedAt = Date.now();
+        var timer = setInterval(function(){
+          if(window.liff && typeof liff.init === "function"){
+            clearInterval(timer);
+            resolve();
+            return;
+          }
+          if(Date.now() - startedAt > 8000){
+            clearInterval(timer);
+            reject(new Error("LIFF SDK 尚未載入完成"));
+          }
+        },120);
+      });
+    }
+
     function initLiff(){
+      if(!window.liff || typeof liff.init !== "function"){
+        return waitForLiffSdk()
+          .then(function(){
+            return initLiff();
+          })
+          .catch(function(){
+            liffReady = false;
+          });
+      }
       return liff.init({ liffId: LIFF_ID })
         .then(function(){
           liffReady = true;
@@ -3420,16 +3446,18 @@
           new Date().getMonth(),
           1
         );
-      renderCalendar();
       updateBookingProgress();
 
       window.requestAnimationFrame(function(){
         setTimeout(function(){
+          renderCalendar();
+        },180);
+        setTimeout(function(){
           loadMonthAvailability();
-        },80);
+        },900);
         setTimeout(function(){
           initLiff();
-        },260);
+        },1600);
       });
     });
 
