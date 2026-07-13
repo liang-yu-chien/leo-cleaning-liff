@@ -2546,7 +2546,7 @@
         modernView.style.display = "none";
         isMonthLoading = false;
         setupOriginalMonthViewEvents();
-        return;
+        return Promise.resolve();
       }
       delete calendarCache[cacheKey];
 
@@ -2561,7 +2561,7 @@
         calendarContainer.style.opacity = "0.5";
       }
 
-      jsonpRequest({
+      return jsonpRequest({
         api:"getOriginalMonthViewJsonp",
         monthOffset:monthOffset,
         selectedDate:selectedDate
@@ -2575,7 +2575,7 @@
           }
 
           if(result.status != "OK" || !result.htmlData){
-            loadMonthAvailabilityFallback(
+            return loadMonthAvailabilityFallback(
               year,
               month,
               "fallback_" + monthOffset,
@@ -2596,6 +2596,7 @@
           calendarContainer.style.display = "block";
           modernView.style.display = "none";
           setupOriginalMonthViewEvents();
+          return result;
         })
         .catch(function(error){
           if(calendarContainer){
@@ -2604,7 +2605,7 @@
           if(calendarBox){
             calendarBox.classList.remove("loading");
           }
-          loadMonthAvailabilityFallback(
+          return loadMonthAvailabilityFallback(
             year,
             month,
             "fallback_" + monthOffset,
@@ -3135,7 +3136,7 @@
     function loadMonthAvailabilityFallback(year,month,cacheKey,calendarContainer,selectedDate){
       document.getElementById("calendarOriginalView").style.display = "none";
       document.getElementById("calendarModernView").style.display = "block";
-      jsonpRequest({
+      return jsonpRequest({
         api:"getMonthAvailabilityJsonp",
         year:year,
         month:month
@@ -3150,7 +3151,7 @@
             monthAvailability = {};
             isMonthLoading = false;
             renderCalendar();
-            return;
+            return result;
           }
 
           monthAvailability = result.days || {};
@@ -3169,6 +3170,7 @@
           ){
             renderSlots(monthAvailability[selectedDate].slots || []);
           }
+          return result;
         })
         .catch(function(error){
           if(calendarContainer){
@@ -3178,6 +3180,10 @@
           monthAvailability = {};
           isMonthLoading = false;
           renderCalendar();
+          return {
+            status:"ERROR",
+            message:error && error.message ? error.message : String(error || "")
+          };
         });
     }
 
@@ -3437,6 +3443,7 @@
     }
 
     document.addEventListener("DOMContentLoaded",function(){
+      setLoading(true);
       syncDefaultTime();
       bindBookingProgressEvents();
       bindCalendarGridEvents();
@@ -3448,17 +3455,23 @@
         );
       updateBookingProgress();
 
-      window.requestAnimationFrame(function(){
-        setTimeout(function(){
+      Promise.resolve()
+        .then(function(){
+          return initLiff();
+        })
+        .catch(function(error){
+          console.log("LIFF 初始化略過：", error && error.message ? error.message : error);
+        })
+        .then(function(){
           renderCalendar();
-        },180);
-        setTimeout(function(){
-          loadMonthAvailability();
-        },900);
-        setTimeout(function(){
-          initLiff();
-        },1600);
-      });
+          return loadMonthAvailability();
+        })
+        .catch(function(error){
+          console.log("前台初始化失敗：", error && error.message ? error.message : error);
+        })
+        .finally(function(){
+          setLoading(false);
+        });
     });
 
     document.addEventListener("visibilitychange",function(){
