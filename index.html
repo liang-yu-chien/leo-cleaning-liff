@@ -323,6 +323,17 @@
       color:var(--red);
       border-color:#f3d4cf;
     }
+    .calendarDay.fullDay:after{
+      content:"已滿";
+      margin-top:2px;
+      padding:2px 6px;
+      border-radius:999px;
+      background:#fee2e2;
+      color:#991b1b;
+      font-size:10px;
+      font-weight:950;
+      line-height:1.1;
+    }
     .calendarDay:active,
     .calendarNav:active{
       transform:scale(0.96);
@@ -765,9 +776,41 @@
       border-color:rgba(220,38,38,0.50);
       background:linear-gradient(180deg,rgba(254,242,242,0.96),rgba(255,255,255,0.86));
     }
+    #calendarOriginalView .calendarDay.fullBooked:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      border-radius:inherit;
+      background:repeating-linear-gradient(
+        -45deg,
+        rgba(220,38,38,0.08) 0,
+        rgba(220,38,38,0.08) 5px,
+        transparent 5px,
+        transparent 11px
+      );
+    }
     #calendarOriginalView .calendarDay.fullClosed{
       border-color:rgba(100,116,139,0.46);
       background:linear-gradient(180deg,rgba(241,245,249,0.96),rgba(255,255,255,0.84));
+    }
+    #calendarOriginalView .calendarDay.fullClosed:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      border-radius:inherit;
+      background:repeating-linear-gradient(
+        -45deg,
+        rgba(100,116,139,0.08) 0,
+        rgba(100,116,139,0.08) 5px,
+        transparent 5px,
+        transparent 11px
+      );
+    }
+    #calendarOriginalView .calendarDay > *{
+      position:relative;
+      z-index:1;
     }
     #calendarOriginalView .dayBadge{
       position:absolute;
@@ -790,6 +833,16 @@
       border-color:#0f766e;
       background:linear-gradient(180deg,#f0fdfa,#ffffff);
       box-shadow:0 0 0 2px rgba(15,118,110,0.18),0 10px 24px rgba(15,118,110,0.12);
+    }
+    #calendarOriginalView .calendarDay.fullBooked.selected{
+      border-color:#b91c1c;
+      background:linear-gradient(180deg,#fee2e2,#fff7f7);
+      box-shadow:0 0 0 2px rgba(220,38,38,0.20),0 10px 24px rgba(220,38,38,0.12);
+    }
+    #calendarOriginalView .calendarDay.hasFree.selected{
+      border-color:#0f766e;
+      background:linear-gradient(180deg,#dcfce7,#ffffff);
+      box-shadow:0 0 0 2px rgba(22,163,74,0.18),0 10px 24px rgba(22,163,74,0.12);
     }
     #calendarOriginalView .calendarDate{
       font-size:12px;
@@ -975,6 +1028,22 @@
       margin-top:7px;
       padding-top:8px;
       border-top:1px dashed rgba(107,123,114,0.24);
+    }
+    .inlineFieldHint{
+      display:none;
+      margin-top:7px;
+      padding:8px 10px;
+      border-radius:12px;
+      background:#fff7ed;
+      color:#9a3412;
+      border:1px solid rgba(251,146,60,0.28);
+      font-size:12px;
+      font-weight:850;
+      line-height:1.45;
+      text-align:left;
+    }
+    .inlineFieldHint.isVisible{
+      display:block;
     }
     .formSectionTitle{
       display:flex;
@@ -1702,6 +1771,7 @@
       <input id="b_phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="&#35531;&#36664;&#20837;&#38651;&#35441;">
       <label for="b_address">&#26381;&#21209;&#22320;&#22336;</label>
       <input id="b_address" autocomplete="street-address" placeholder="&#35531;&#36664;&#20837;&#26381;&#21209;&#22320;&#22336;">
+      <div id="addressInlineHint" class="inlineFieldHint" aria-live="polite">請補上完整地址，例如：桃園市桃園區中正路100號5樓。</div>
       <details class="addressServiceDetails">
         <summary>小提示：請填寫完整地址，超出服務範圍請先詢問。</summary>
         <div class="addressServiceHint">目前主要服務新竹竹北市，以及桃園市（不含復興、蘆竹、觀音、龜山區）。地址範例：桃園市桃園區中正路100號5樓，請務必填寫縣市、行政區與路名門牌。</div>
@@ -1894,7 +1964,13 @@
       ];
       var filledCount = requiredIds.reduce(function(count,id){
         var el = document.getElementById(id);
-        return count + (el && String(el.value || "").trim() != "" ? 1 : 0);
+        if(!el){
+          return count;
+        }
+        if(id == "b_address"){
+          return count + (isAddressProbablyComplete(el.value) ? 1 : 0);
+        }
+        return count + (String(el.value || "").trim() != "" ? 1 : 0);
       },0);
       var progress =
         date ? 40 : 20;
@@ -1908,6 +1984,41 @@
       stepInfo.classList.toggle("active",hasTime);
       fill.style.width =
         Math.min(100,progress) + "%";
+    }
+
+    function isAddressProbablyComplete(address){
+      var text =
+        String(address || "").replace(/\s/g,"");
+
+      if(text.length < 8){
+        return false;
+      }
+
+      return /[縣市]/.test(text) &&
+        /[區鄉鎮市]/.test(text) &&
+        /[路街大道段巷弄]/.test(text) &&
+        /[0-9０-９一二三四五六七八九十]+(?:[-之][0-9０-９一二三四五六七八九十A-Za-z]+)?[號樓]/.test(text);
+    }
+
+    function updateAddressInlineHint(){
+      var address =
+        document.getElementById("b_address");
+      var hint =
+        document.getElementById("addressInlineHint");
+
+      if(!address || !hint){
+        return;
+      }
+
+      var value =
+        String(address.value || "").trim();
+
+      if(value == "" || isAddressProbablyComplete(value)){
+        hint.classList.remove("isVisible");
+        return;
+      }
+
+      hint.classList.add("isVisible");
     }
 
     function normalizePhoneInput(){
@@ -1952,6 +2063,16 @@
           normalizePhoneInput();
           updateBookingProgress();
         });
+      }
+
+      var address =
+        document.getElementById("b_address");
+      if(address){
+        address.addEventListener("input",function(){
+          updateAddressInlineHint();
+          updateBookingProgress();
+        });
+        address.addEventListener("blur",updateAddressInlineHint);
       }
     }
 
@@ -2105,6 +2226,10 @@
       if(!data.name){ return t("needName"); }
       if(!data.phone){ return t("needPhone"); }
       if(!data.address){ return t("needAddress"); }
+      if(!isAddressProbablyComplete(data.address)){
+        updateAddressInlineHint();
+        return "請輸入完整服務地址，例如：桃園市桃園區中正路100號5樓";
+      }
       if(!data.date){ return t("needDate"); }
       if(!isFullDateText(data.date)){ return "\u8acb\u9078\u64c7\u5b8c\u6574\u65e5\u671f"; }
       if(!data.period){ return t("needPeriod"); }
