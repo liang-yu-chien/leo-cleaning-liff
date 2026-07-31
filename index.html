@@ -1564,23 +1564,19 @@
       color:#fff;
       border-color:#22d3ee;
     }
-    .adminCalendarQuickActions{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:8px;
-      margin:8px 0 10px;
-    }
     .adminCalendarQuickBtn{
-      width:100%;
-      border:1px solid rgba(251,146,60,0.38);
-      border-radius:14px;
-      background:linear-gradient(180deg,#ffedd5,#fed7aa);
+      min-width:74px !important;
+      border:1px solid rgba(251,146,60,0.34) !important;
+      border-radius:999px !important;
+      background:linear-gradient(180deg,#fff7ed,#fed7aa) !important;
       color:#9a3412;
-      box-shadow:0 6px 14px rgba(251,146,60,0.14),inset 0 1px 0 rgba(255,255,255,0.82);
+      box-shadow:0 4px 10px rgba(251,146,60,0.12),inset 0 1px 0 rgba(255,255,255,0.82) !important;
       cursor:pointer;
-      font-size:13px;
+      font-size:12px !important;
       font-weight:950;
-      padding:10px 12px;
+      padding:8px 9px !important;
+      white-space:nowrap !important;
+      text-align:center !important;
       touch-action:manipulation;
     }
     .adminCalendarQuickBtn:active{
@@ -2555,14 +2551,12 @@
       html += '<button class="monthNavBtn" type="button" onclick="loadData(currentMonthOffset - 1)">\u4e0a\u6708</button>';
       html += '<button class="monthNavBtn primary" type="button" onclick="loadData(0)">\u672c\u6708</button>';
       html += '<button class="monthNavBtn" type="button" onclick="loadData(currentMonthOffset + 1)">\u4e0b\u6708</button>';
+      html += '<button class="monthNavBtn adminCalendarQuickBtn" type="button" onclick="lockCurrentMonthEveningSlots()">\u95dc\u665a\u4e0a</button>';
       html += '</div></div>';
       html += '<div class="calendarLegend">';
       html += '<div class="legendItem"><span class="legendDot free"></span>\u53ef\u9810\u7d04</div>';
       html += '<div class="legendItem"><span class="legendDot booked"></span>\u5df2\u6eff</div>';
       html += '<div class="legendItem"><span class="legendDot closed"></span>\u672a\u958b\u653e</div>';
-      html += '</div>';
-      html += '<div class="adminCalendarQuickActions">';
-      html += '<button class="adminCalendarQuickBtn" type="button" onclick="lockCurrentMonthEveningSlots()">\u4e00\u9375\u95dc\u9589\u672c\u6708\u665a\u4e0a\u6642\u6bb5</button>';
       html += '</div>';
       html += '<div class="monthCalendar">';
       ["\u65e5","\u4e00","\u4e8c","\u4e09","\u56db","\u4e94","\u516d"].forEach(function(w){
