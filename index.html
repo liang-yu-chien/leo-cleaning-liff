@@ -2634,6 +2634,110 @@
         }).length;
     }
 
+    function buildSlotFromPeriodText(periodText,isAvailable){
+      var periodKey =
+        periodKeyFromText(periodText);
+      var rule =
+        PERIOD_RULES[periodKey] || PERIOD_RULES.morning;
+
+      return {
+        period:rule.label,
+        startTime:rule.defaultStart,
+        endTime:rule.defaultEnd,
+        available:isAvailable === true
+      };
+    }
+
+    function periodTextFromMiniSlot(item,index){
+      var text =
+        String(item.textContent || "").replace(/\s+/g,"");
+
+      if(text.indexOf("\u65e9") >= 0 || text.indexOf("\u4e0a") >= 0){
+        return "\u4e0a\u5348";
+      }
+      if(text.indexOf("\u5348") >= 0 || text.indexOf("\u4e0b") >= 0){
+        return "\u4e0b\u5348";
+      }
+      if(text.indexOf("\u665a") >= 0){
+        return "\u665a\u4e0a";
+      }
+
+      return ["\u4e0a\u5348","\u4e0b\u5348","\u665a\u4e0a"][index] || "";
+    }
+
+    function isMiniSlotAvailable(item){
+      var text =
+        String(item.textContent || "").replace(/\s+/g,"");
+
+      if(
+        item.classList.contains("booked") ||
+        item.classList.contains("full") ||
+        item.classList.contains("closed") ||
+        item.classList.contains("disabled") ||
+        text.indexOf("\u5df2\u6eff") >= 0 ||
+        text.indexOf("\u4e0d\u53ef") >= 0 ||
+        text.indexOf("\u672a\u958b") >= 0 ||
+        text.indexOf("\u66ab\u4e0d") >= 0 ||
+        text.indexOf("\u4f11") >= 0
+      ){
+        return false;
+      }
+
+      if(
+        item.classList.contains("free") ||
+        item.classList.contains("available") ||
+        text.indexOf("\u53ef") >= 0 ||
+        text.indexOf("\u958b\u653e") >= 0
+      ){
+        return true;
+      }
+
+      return false;
+    }
+
+    function hydrateOriginalMonthSlotsFromDom(){
+      var root =
+        document.getElementById("calendarOriginalView");
+
+      if(!root){
+        return;
+      }
+
+      Array.prototype.forEach.call(
+        root.querySelectorAll(".calendarDay[data-date]"),
+        function(day){
+          var dateText =
+            day.getAttribute("data-date") || "";
+          var miniSlots =
+            day.querySelectorAll(".calendarMiniSlot");
+          var slots = [];
+
+          if(!dateText || miniSlots.length == 0){
+            return;
+          }
+
+          Array.prototype.forEach.call(miniSlots,function(item,index){
+            var periodText =
+              periodTextFromMiniSlot(item,index);
+            if(!periodText){
+              return;
+            }
+
+            slots.push(
+              buildSlotFromPeriodText(
+                periodText,
+                isMiniSlotAvailable(item)
+              )
+            );
+          });
+
+          if(slots.length > 0){
+            storeDaySlots(dateText,slots);
+          }
+        }
+      );
+    }
+
     function renderOriginalDaySlotsFromCache(dateText,slots){
       var content =
         document.getElementById("dayDetailContent");
@@ -2731,6 +2835,7 @@
         calendarContainer.innerHTML =
           calendarCache[cacheKey].htmlData || "";
         normalizeOriginalCalendarLabels();
+        hydrateOriginalMonthSlotsFromDom();
         calendarContainer.style.display = "block";
         modernView.style.display = "none";
         isMonthLoading = false;
@@ -2785,6 +2890,7 @@
           calendarContainer.innerHTML =
             result.htmlData || "";
           normalizeOriginalCalendarLabels();
+          hydrateOriginalMonthSlotsFromDom();
           calendarContainer.style.display = "block";
           modernView.style.display = "none";
           setupOriginalMonthViewEvents();
