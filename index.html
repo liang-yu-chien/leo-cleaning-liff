@@ -1845,6 +1845,7 @@
     var selectedSlotKey = "";
     var monthAvailability = {};
     var calendarCache = {};
+    var daySlotCache = {};
     var CALENDAR_CACHE_MAX_AGE_MS = 30000;
     var isMonthLoading = false;
     var isSubmittingBooking = false;
@@ -2588,6 +2589,69 @@
       updateBookingProgress();
     }
 
+    function getCachedDaySlots(dateText){
+      var monthData =
+        monthAvailability[dateText];
+      if(
+        monthData &&
+        monthData.slots &&
+        monthData.slots.length
+      ){
+        return monthData.slots;
+      }
+
+      var cached =
+        daySlotCache[dateText];
+      if(
+        cached &&
+        Date.now() - Number(cached.cachedAt || 0) < CALENDAR_CACHE_MAX_AGE_MS
+      ){
+        return cached.slots || [];
+      }
+
+      return null;
+    }
+
+    function storeDaySlots(dateText,slots){
+      slots = slots || [];
+      daySlotCache[dateText] = {
+        slots:slots,
+        cachedAt:Date.now()
+      };
+
+      if(!monthAvailability[dateText]){
+        monthAvailability[dateText] = {
+          date:dateText,
+          availableCount:0,
+          slots:[]
+        };
+      }
+
+      monthAvailability[dateText].slots = slots;
+      monthAvailability[dateText].availableCount =
+        slots.filter(function(slot){
+          return slot && slot.available === true;
+        }).length;
+    }
+
+    function renderOriginalDaySlotsFromCache(dateText,slots){
+      var content =
+        document.getElementById("dayDetailContent");
+      var title =
+        document.getElementById("dayDetailTitle");
+
+      if(title){
+        title.textContent = dateText;
+      }
+      if(content){
+        content.innerHTML =
+          renderOriginalDaySlotsHtml(dateText,slots || []);
+        setupOriginalMonthViewEvents();
+      }
+      renderSlots(slots || []);
+      scrollToOriginalDayDetail();
+    }
+
     function moveCalendarMonth(offset){
       triggerHaptic("light");
       var today = new Date();
@@ -2671,6 +2735,9 @@
         modernView.style.display = "none";
         isMonthLoading = false;
         setupOriginalMonthViewEvents();
+        setTimeout(function(){
+          primeMonthAvailabilityCache(year,month);
+        },120);
         return Promise.resolve();
       }
       delete calendarCache[cacheKey];
@@ -2721,6 +2788,9 @@
           calendarContainer.style.display = "block";
           modernView.style.display = "none";
           setupOriginalMonthViewEvents();
+          setTimeout(function(){
+            primeMonthAvailabilityCache(year,month);
+          },120);
           return result;
         })
         .catch(function(error){
@@ -2743,6 +2813,7 @@
     function clearFrontendCalendarCache(){
       monthAvailability = {};
       calendarCache = {};
+      daySlotCache = {};
     }
 
     function normalizeOriginalCalendarLabels(){
@@ -3021,6 +3092,18 @@
       selectedSlotKey = "";
       updateSelectedDateHint(dateText);
       highlightCalendarDate(dateText);
+      var cachedSlots =
+        getCachedDaySlots(dateText);
+
+      if(cachedSlots){
+        renderOriginalDaySlotsFromCache(dateText,cachedSlots);
+        loadOriginalDaySlots(dateText,{
+          silent:true,
+          keepExisting:true
+        });
+        return;
+      }
+
       loadOriginalDaySlots(dateText);
     }
 
@@ -3033,16 +3116,19 @@
       }
     }
 
-    function loadOriginalDaySlots(dateText){
+    function loadOriginalDaySlots(dateText,options){
+      options = options || {};
       var content =
         document.getElementById("dayDetailContent");
       var title =
         document.getElementById("dayDetailTitle");
+      var fallbackSlots =
+        getCachedDaySlots(dateText);
 
       if(title){
         title.textContent = dateText;
       }
-      if(content){
+      if(content && !options.silent){
         content.innerHTML =
           '<div class="status" style="display:block;">' +
           t("loadingSlots") +
@@ -3072,6 +3158,7 @@
               );
             setupOriginalMonthViewEvents();
           }
+          storeDaySlots(dateText,result.slots || []);
           syncOriginalCalendarDayFromSlots(
             dateText,
             result.slots || []
@@ -3080,6 +3167,12 @@
           scrollToOriginalDayDetail();
         })
         .catch(function(error){
+          if(options.keepExisting || fallbackSlots){
+            if(fallbackSlots){
+              renderSlots(fallbackSlots);
+            }
+            return;
+          }
           if(content){
             content.innerHTML =
               '<div class="status error" style="display:block;">' +
@@ -3217,8 +3310,38 @@
         monthAvailability[dateText].availableCount = freeCount;
         monthAvailability[dateText].slots = slots || [];
       }
+      storeDaySlots(dateText,slots || []);
 
       delete calendarCache[cacheKey];
+    }
+
+    function primeMonthAvailabilityCache(year,month){
+      if(Object.keys(monthAvailability || {}).length > 20){
+        return;
+      }
+
+      jsonpRequest({
+        api:"getMonthAvailabilityJsonp",
+        year:year,
+        month:month
+      })
+        .then(function(result){
+          if(result.status != "OK"){
+            return;
+          }
+
+          monthAvailability = result.days || {};
+          Object.keys(monthAvailability).forEach(function(dateText){
+            if(monthAvailability[dateText]){
+              storeDaySlots(
+                dateText,
+                monthAvailability[dateText].slots || []
+              );
+            }
+          });
+        })
+        .catch(function(error){
+        });
     }
 
     function bindCalendarGridEvents(){
@@ -3332,6 +3455,8 @@
     function loadAvailability(){
       var date = document.getElementById("b_date").value;
       var list = document.getElementById("slotList");
+      var cachedSlots =
+        getCachedDaySlots(date);
       selectedSlotKey = "";
       clearSelectedSlots();
       updateSelectedDateHint(date);
@@ -3346,6 +3471,14 @@
           '</div>';
         return;
       }
+      if(cachedSlots){
+        renderSlots(cachedSlots);
+        loadOriginalDaySlots(date,{
+          silent:true,
+          keepExisting:true
+        });
+        return;
+      }
       list.innerHTML = '<div class="status" style="display:block;">' + t("loadingSlots") + '</div>';
       jsonpRequest({ api:"getAvailabilityJsonp", date:date })
         .then(function(result){
@@ -3353,9 +3486,16 @@
             list.innerHTML = '<div class="status error" style="display:block;">' + (result.message || t("slotFail")) + '</div>';
             return;
           }
+          storeDaySlots(date,result.slots || []);
           renderSlots(result.slots || []);
         })
         .catch(function(error){
+          var retrySlots =
+            getCachedDaySlots(date);
+          if(retrySlots){
+            renderSlots(retrySlots);
+            return;
+          }
           list.innerHTML = '<div class="status error" style="display:block;">' +
             t("apiFail") +
             '</div>';
