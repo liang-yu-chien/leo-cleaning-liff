@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/liff-static/index.html"
+    },
+    {
+      "source": "/logo-web.png",
+      "destination": "/liff-static/logo-web.png"
+    },
+    {
+      "source": "/logo.png",
+      "destination": "/liff-static/logo.png"
+    }
+  ]
+}
