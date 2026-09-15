@@ -1739,7 +1739,7 @@
           <div id="bookingProgressStepInfo" class="appProgressStep">3. 填資料</div>
         </div>
       </div>
-      <div id="bookingWindowHint" class="hint" style="margin:0 0 10px;" aria-live="polite">開放今天起兩個月內預約</div>
+      <div id="bookingWindowHint" class="hint" style="margin:0 0 10px;" aria-live="polite">開放下個月及下下個月預約</div>
       <div class="calendarBox">
         <div id="calendarOriginalView"></div>
         <div id="calendarModernView">
@@ -1876,14 +1876,13 @@
         defaultEnd:"20:30"
       }
     };
-    var calendarViewDate = new Date();
+    var calendarViewDate = new Date(new Date().getFullYear(),new Date().getMonth() + 1,1);
     var BOOKING_WINDOW_MONTHS = 2;
 
     function getBookingDateWindow(now){
       now = now || new Date();
-      var start = new Date(now.getFullYear(),now.getMonth(),now.getDate());
-      var lastDay = new Date(start.getFullYear(),start.getMonth() + BOOKING_WINDOW_MONTHS + 1,0).getDate();
-      var end = new Date(start.getFullYear(),start.getMonth() + BOOKING_WINDOW_MONTHS,Math.min(start.getDate(),lastDay));
+      var start = new Date(now.getFullYear(),now.getMonth() + 1,1);
+      var end = new Date(now.getFullYear(),now.getMonth() + BOOKING_WINDOW_MONTHS + 1,0);
       return {start:start,end:end};
     }
 
@@ -1897,7 +1896,7 @@
 
     function applyBookingWindowToCalendar(){
       var range = getBookingDateWindow();
-      var maxOffset = (range.end.getFullYear()-range.start.getFullYear())*12 + range.end.getMonth()-range.start.getMonth();
+      var maxOffset = BOOKING_WINDOW_MONTHS;
       var offset = getCalendarMonthOffset();
       var root = document.getElementById("calendarOriginalView");
       var hint = document.getElementById("bookingWindowHint");
@@ -1905,8 +1904,8 @@
       if(!root){ return; }
       var nav = root.querySelector(".monthNav");
       if(nav){
-        nav.innerHTML = '<button type="button" class="monthNavBtn" onclick="moveCalendarMonth(-1)"' + (offset <= 0 ? ' disabled' : '') + '>上個月</button>' +
-          '<button type="button" class="monthNavBtn primary" onclick="goCurrentMonth()">本月</button>' +
+        nav.innerHTML = '<button type="button" class="monthNavBtn" onclick="moveCalendarMonth(-1)"' + (offset <= 1 ? ' disabled' : '') + '>上個月</button>' +
+          '<button type="button" class="monthNavBtn primary" onclick="goCurrentMonth()">可約首月</button>' +
           '<button type="button" class="monthNavBtn" onclick="moveCalendarMonth(1)"' + (offset >= maxOffset ? ' disabled' : '') + '>下個月</button>';
       }
       Array.prototype.forEach.call(root.querySelectorAll(".calendarDay[data-date],.bookableSlot[data-date]"),function(el){
@@ -2288,7 +2287,7 @@
       }
       if(!data.date){ return t("needDate"); }
       if(!isFullDateText(data.date)){ return "\u8acb\u9078\u64c7\u5b8c\u6574\u65e5\u671f"; }
-      if(!isDateInBookingWindow(data.date)){ return "請選擇今天起兩個月內的日期"; }
+      if(!isDateInBookingWindow(data.date)){ return "請選擇下個月及下下個月的日期"; }
       if(!data.period){ return t("needPeriod"); }
       if(!isSelectedSlotStillCurrent()){
         return t("needSlot");
@@ -2471,7 +2470,7 @@
       var first = new Date(year,month,1);
       var daysInMonth = new Date(year,month + 1,0).getDate();
       var startDay = first.getDay();
-      var currentMonthStart = new Date(today.getFullYear(),today.getMonth(),1);
+      var currentMonthStart = getBookingDateWindow().start;
       var bookingWindow = getBookingDateWindow();
       var maxMonthStart = new Date(bookingWindow.end.getFullYear(),bookingWindow.end.getMonth(),1);
 
@@ -2666,8 +2665,7 @@
           calendarViewDate.getMonth() + offset,
           1
         );
-      var minMonth =
-        new Date(today.getFullYear(),today.getMonth(),1);
+      var minMonth = getBookingDateWindow().start;
       var bookingWindow = getBookingDateWindow();
       var maxMonth =
         new Date(bookingWindow.end.getFullYear(),bookingWindow.end.getMonth(),1);
@@ -3083,12 +3081,7 @@
     }
 
     function goCurrentMonth(){
-      calendarViewDate =
-        new Date(
-          new Date().getFullYear(),
-          new Date().getMonth(),
-          1
-        );
+      calendarViewDate = getBookingDateWindow().start;
       resetSelectedDateAndSlot();
       loadMonthAvailability();
     }
@@ -3666,12 +3659,7 @@
       syncDefaultTime();
       bindBookingProgressEvents();
       bindCalendarGridEvents();
-      calendarViewDate =
-        new Date(
-          new Date().getFullYear(),
-          new Date().getMonth(),
-          1
-        );
+      calendarViewDate = getBookingDateWindow().start;
       updateBookingProgress();
 
       Promise.resolve()
