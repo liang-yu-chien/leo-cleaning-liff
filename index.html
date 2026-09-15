@@ -1706,6 +1706,8 @@
         font-size:7px !important;
       }
     }
+    .outsideBookingWindow{ opacity:.4 !important; pointer-events:none !important; cursor:default !important; }
+    .monthNavBtn:disabled{ opacity:.4; cursor:default; }
   </style>
 </head>
 <body>
@@ -1737,6 +1739,7 @@
           <div id="bookingProgressStepInfo" class="appProgressStep">3. 填資料</div>
         </div>
       </div>
+      <div id="bookingWindowHint" class="hint" style="margin:0 0 10px;" aria-live="polite">開放今天起兩個月內預約</div>
       <div class="calendarBox">
         <div id="calendarOriginalView"></div>
         <div id="calendarModernView">
@@ -1843,6 +1846,7 @@
     var liffUserId = "";
     var liffDisplayName = "";
     var selectedSlotKey = "";
+    var availabilityRequestSeq = 0;
     var monthAvailability = {};
     var calendarCache = {};
     var CALENDAR_CACHE_MAX_AGE_MS = 30000;
@@ -1873,6 +1877,49 @@
       }
     };
     var calendarViewDate = new Date();
+    var BOOKING_WINDOW_MONTHS = 2;
+
+    function getBookingDateWindow(now){
+      now = now || new Date();
+      var start = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      var lastDay = new Date(start.getFullYear(),start.getMonth() + BOOKING_WINDOW_MONTHS + 1,0).getDate();
+      var end = new Date(start.getFullYear(),start.getMonth() + BOOKING_WINDOW_MONTHS,Math.min(start.getDate(),lastDay));
+      return {start:start,end:end};
+    }
+
+    function isDateInBookingWindow(dateText){
+      if(!isFullDateText(dateText)){ return false; }
+      var parts = dateText.split("-");
+      var date = new Date(Number(parts[0]),Number(parts[1])-1,Number(parts[2]));
+      var range = getBookingDateWindow();
+      return formatDateLocal(date) == dateText && date >= range.start && date <= range.end;
+    }
+
+    function applyBookingWindowToCalendar(){
+      var range = getBookingDateWindow();
+      var maxOffset = (range.end.getFullYear()-range.start.getFullYear())*12 + range.end.getMonth()-range.start.getMonth();
+      var offset = getCalendarMonthOffset();
+      var root = document.getElementById("calendarOriginalView");
+      var hint = document.getElementById("bookingWindowHint");
+      if(hint){ hint.textContent = "開放預約：" + formatDateLocal(range.start) + " ～ " + formatDateLocal(range.end); }
+      if(!root){ return; }
+      var nav = root.querySelector(".monthNav");
+      if(nav){
+        nav.innerHTML = '<button type="button" class="monthNavBtn" onclick="moveCalendarMonth(-1)"' + (offset <= 0 ? ' disabled' : '') + '>上個月</button>' +
+          '<button type="button" class="monthNavBtn primary" onclick="goCurrentMonth()">本月</button>' +
+          '<button type="button" class="monthNavBtn" onclick="moveCalendarMonth(1)"' + (offset >= maxOffset ? ' disabled' : '') + '>下個月</button>';
+      }
+      Array.prototype.forEach.call(root.querySelectorAll(".calendarDay[data-date],.bookableSlot[data-date]"),function(el){
+        var allowed = isDateInBookingWindow(el.getAttribute("data-date"));
+        if(!allowed){
+          el.classList.add("outsideBookingWindow");
+          el.setAttribute("aria-disabled","true");
+          el.setAttribute("tabindex","-1");
+          el.removeAttribute("onclick");
+        }
+      });
+    }
+
 
     function t(key){
       var map = {
@@ -1954,7 +2001,7 @@
       }
 
       var date = document.getElementById("b_date").value;
-      var hasTime = selectedSlotKey != "";
+      var hasTime = isSelectedSlotStillCurrent();
       var requiredIds = [
         "b_name",
         "b_phone",
@@ -2054,6 +2101,15 @@
         }
         el.addEventListener("input",updateBookingProgress);
         el.addEventListener("change",updateBookingProgress);
+        if(id == "b_startTime" || id == "b_endTime"){
+          el.addEventListener("change",function(){
+            var date = document.getElementById("b_date").value;
+            updateSelectedDateHint(date,isSelectedSlotStillCurrent() ?
+              getPeriodText(document.getElementById("b_period").value) + " " +
+              document.getElementById("b_startTime").value + "-" +
+              document.getElementById("b_endTime").value : "");
+          });
+        }
       });
 
       var phone =
@@ -2232,6 +2288,7 @@
       }
       if(!data.date){ return t("needDate"); }
       if(!isFullDateText(data.date)){ return "\u8acb\u9078\u64c7\u5b8c\u6574\u65e5\u671f"; }
+      if(!isDateInBookingWindow(data.date)){ return "請選擇今天起兩個月內的日期"; }
       if(!data.period){ return t("needPeriod"); }
       if(!isSelectedSlotStillCurrent()){
         return t("needSlot");
@@ -2242,14 +2299,22 @@
     }
 
     function isSelectedSlotStillCurrent(){
-      var key =
-        document.getElementById("b_date").value + "|" +
-        document.getElementById("b_period").value + "|" +
-        document.getElementById("b_startTime").value + "|" +
-        document.getElementById("b_endTime").value;
+      // Keep the originally selected availability window; edits may shorten it.
+      var selected = String(selectedSlotKey || "").split("|");
+      var date = document.getElementById("b_date").value;
+      var period = document.getElementById("b_period").value;
+      var start = document.getElementById("b_startTime").value;
+      var end = document.getElementById("b_endTime").value;
 
-      return selectedSlotKey != "" &&
-        selectedSlotKey == key;
+      if(selected.length != 4 || selected[0] != date || selected[1] != period){
+        return false;
+      }
+      if(!start || !end || !selected[2] || !selected[3]){
+        return false;
+      }
+      return minutesFromTime(start) >= minutesFromTime(selected[2]) &&
+        minutesFromTime(end) <= minutesFromTime(selected[3]) &&
+        validateSelectedTime() == "";
     }
 
     function validateSelectedTime(){
@@ -2396,6 +2461,7 @@
     }
 
     function renderCalendar(){
+      applyBookingWindowToCalendar();
       var title = document.getElementById("calendarTitle");
       var grid = document.getElementById("calendarGrid");
       var selectedDate = document.getElementById("b_date").value;
@@ -2406,7 +2472,8 @@
       var daysInMonth = new Date(year,month + 1,0).getDate();
       var startDay = first.getDay();
       var currentMonthStart = new Date(today.getFullYear(),today.getMonth(),1);
-      var maxMonthStart = new Date(today.getFullYear(),today.getMonth() + 1,1);
+      var bookingWindow = getBookingDateWindow();
+      var maxMonthStart = new Date(bookingWindow.end.getFullYear(),bookingWindow.end.getMonth(),1);
 
       today.setHours(0,0,0,0);
       title.textContent = year + "\u5e74" + (month + 1) + "\u6708";
@@ -2424,7 +2491,8 @@
         var disabled =
           date < today ||
           first < currentMonthStart ||
-          first > maxMonthStart;
+          first > maxMonthStart ||
+          date > bookingWindow.end;
 
         var dayData =
           monthAvailability[dateText];
@@ -2566,6 +2634,7 @@
     }
 
     function resetSelectedDateAndSlot(){
+      availabilityRequestSeq++;
       selectedSlotKey = "";
       document.getElementById("b_date").value = "";
       document.getElementById("b_startTime").value = "";
@@ -2599,8 +2668,9 @@
         );
       var minMonth =
         new Date(today.getFullYear(),today.getMonth(),1);
+      var bookingWindow = getBookingDateWindow();
       var maxMonth =
-        new Date(today.getFullYear(),today.getMonth() + 1,1);
+        new Date(bookingWindow.end.getFullYear(),bookingWindow.end.getMonth(),1);
 
       if(target < minMonth || target > maxMonth){
         return;
@@ -2614,6 +2684,8 @@
     }
 
     function selectCalendarDate(dateText){
+      if(!isDateInBookingWindow(dateText)){ return; }
+      availabilityRequestSeq++;
       triggerHaptic("light");
       document.getElementById("b_date").value = dateText;
       selectedSlotKey = "";
@@ -2880,6 +2952,8 @@
     }
 
     function selectCalendarMiniSlot(event,dateText,periodText){
+      if(!isDateInBookingWindow(dateText)){ return; }
+      availabilityRequestSeq++;
       triggerHaptic("light");
       if(event){
         event.stopPropagation();
@@ -2931,6 +3005,7 @@
     }
 
     function setupOriginalMonthViewEvents(){
+      applyBookingWindowToCalendar();
       Array.prototype.forEach.call(
         document.querySelectorAll("#calendarOriginalView .bookableSlot"),
         function(slot){
@@ -2947,6 +3022,8 @@
     }
 
     function selectOriginalBookableSlot(slot){
+      if(!isDateInBookingWindow(slot.getAttribute("data-date") || "")){ return; }
+      availabilityRequestSeq++;
       triggerHaptic("light");
       var dateText =
         slot.getAttribute("data-date") || "";
@@ -3017,6 +3094,8 @@
     }
 
     function showCustomerDaySlots(dateText){
+      if(!isDateInBookingWindow(dateText)){ return; }
+      availabilityRequestSeq++;
       document.getElementById("b_date").value = dateText;
       selectedSlotKey = "";
       updateSelectedDateHint(dateText);
@@ -3034,6 +3113,7 @@
     }
 
     function loadOriginalDaySlots(dateText){
+      var requestSeq = ++availabilityRequestSeq;
       var content =
         document.getElementById("dayDetailContent");
       var title =
@@ -3054,6 +3134,9 @@
         date:dateText
       })
         .then(function(result){
+          if(requestSeq != availabilityRequestSeq || document.getElementById("b_date").value != dateText){
+            return;
+          }
           if(result.status != "OK"){
             if(content){
               content.innerHTML =
@@ -3080,6 +3163,9 @@
           scrollToOriginalDayDetail();
         })
         .catch(function(error){
+          if(requestSeq != availabilityRequestSeq || document.getElementById("b_date").value != dateText){
+            return;
+          }
           if(content){
             content.innerHTML =
               '<div class="status error" style="display:block;">' +
@@ -3330,6 +3416,7 @@
     }
 
     function loadAvailability(){
+      var requestSeq = ++availabilityRequestSeq;
       var date = document.getElementById("b_date").value;
       var list = document.getElementById("slotList");
       selectedSlotKey = "";
@@ -3349,6 +3436,9 @@
       list.innerHTML = '<div class="status" style="display:block;">' + t("loadingSlots") + '</div>';
       jsonpRequest({ api:"getAvailabilityJsonp", date:date })
         .then(function(result){
+          if(requestSeq != availabilityRequestSeq || document.getElementById("b_date").value != date){
+            return;
+          }
           if(result.status != "OK"){
             list.innerHTML = '<div class="status error" style="display:block;">' + (result.message || t("slotFail")) + '</div>';
             return;
@@ -3356,6 +3446,9 @@
           renderSlots(result.slots || []);
         })
         .catch(function(error){
+          if(requestSeq != availabilityRequestSeq || document.getElementById("b_date").value != date){
+            return;
+          }
           list.innerHTML = '<div class="status error" style="display:block;">' +
             t("apiFail") +
             '</div>';
@@ -3378,6 +3471,7 @@
     }
 
     function selectSlot(slot,button){
+      if(!isDateInBookingWindow(document.getElementById("b_date").value)){ return; }
       triggerHaptic("light");
       Array.prototype.forEach.call(document.querySelectorAll(".slotBtn"),function(item){
         item.classList.remove("selected");
