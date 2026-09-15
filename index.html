@@ -1708,6 +1708,9 @@
     }
     .outsideBookingWindow{ opacity:.4 !important; pointer-events:none !important; cursor:default !important; }
     .monthNavBtn:disabled{ opacity:.4; cursor:default; }
+    .calendarMonthActions{ display:flex; gap:4px; flex-shrink:0; }
+    .calendarMonthActions .calendarNav{ width:auto; min-width:46px; height:36px; padding:0 7px; font-size:12px; }
+    .calendarMonthActions .calendarNavCurrent{ background:var(--green); color:#fff; }
   </style>
 </head>
 <body>
@@ -1744,9 +1747,12 @@
         <div id="calendarOriginalView"></div>
         <div id="calendarModernView">
           <div class="calendarTop">
-            <button type="button" class="calendarNav" onclick="moveCalendarMonth(-1)">&#8249;</button>
             <div id="calendarTitle" class="calendarTitle"></div>
-            <button type="button" class="calendarNav" onclick="moveCalendarMonth(1)">&#8250;</button>
+            <div class="calendarMonthActions" role="group" aria-label="月份切換">
+              <button type="button" class="calendarNav" onclick="moveCalendarMonth(-1)">上個月</button>
+              <button type="button" class="calendarNav calendarNavCurrent" onclick="goCurrentMonth()">本月</button>
+              <button type="button" class="calendarNav" onclick="moveCalendarMonth(1)">下個月</button>
+            </div>
           </div>
           <div class="calendarWeek">
             <span>&#26085;</span>
